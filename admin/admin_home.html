@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page - Flight Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .top-app-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+        }
+
+        .container {
+            width: 70%;
+            margin: 20px auto; /* Centering the container */
+            text-align: center; /* Centering text content */
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin: 20px;
+        }
+
+        .logo {
+            width: 40px; /* Adjust size as needed */
+            height: auto;
+            margin-right: 10px;
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background-color: #fff;
+            color: #333;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Grid container styles */
+        .grid-container {
+            display: grid;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px; /* Add margin to create space */
+        }
+
+        @media screen and (min-width: 1100px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media screen and (max-width: 1100px) and (min-width: 601px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+        .grid-item {
+            background-color: #ddd;
+            padding: 20px;
+            text-align: center;
+            grid-column: span 1;
+            border-radius: 10px; /* Rounded corners for grid items */
+        }
+
+        .image-container {
+            width: 30%;
+            margin: auto;
+            margin-top: 20px; /* Adjust margin-top for spacing */
+        }
+
+        .image-container img {
+            width: 100%;
+            display: block; /* Ensure image stretches to container width */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top App Bar -->
+    <div class="top-app-bar">
+        <div class="logo-container">
+            <img src="/images/logo.jpg" alt="Flyeasy Logo" class="logo">
+            <div class="logo-text">Flyeasy</div>
+        </div>
+        <button class="logout-btn">Logout</button>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <h4>Welcome to the Flight Management Dashboard!</h4>
+
+        <!-- Image Container -->
+        <div class="image-container">
+            <img src="/images/admin_ui.png" alt="Admin UI" />
+        </div>
+
+        <!-- Grid Container -->
+        <div class="grid-container">
+            <div class="grid-item">Manage Flights</div>
+            <div class="grid-item">Manage Routes</div>
+            <div class="grid-item">Manage SubRoutes</div>
+            <div class="grid-item">Manage Booking</div>
+            <div class="grid-item">Manage Cancellation</div>
+            <div class="grid-item">Manage Refund</div>
+        </div>
+    </div>
+
+</body>
+
+</html>

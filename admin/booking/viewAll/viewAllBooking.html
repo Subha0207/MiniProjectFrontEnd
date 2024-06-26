@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paginated Data Table</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <link rel="stylesheet" href="viewAllBooking_style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="operation-container">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for bookings...">
+            </div>
+
+            <div class="sort-container">
+                <select id="sortSelect">
+                    <option value="" disabled selected hidden>Sort By</option>
+                    <option value="flightId">Sort by Flight ID</option>
+                    <option value="bookingId">Sort by Booking ID</option>
+                    <option value="noOfPersons">Sort by Persons</option>
+                    <option value="routeId">Sort by Route ID</option>
+                    <option value="totalAmount">Sort by Amount</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="dataTableContainer" class="data-table-container">
+         
+        </div>
+        <div id="cardsContainer" class="cards-container">
+         
+        </div>
+        <div class="pagination">
+            <button id="prevBtn" disabled>Previous</button>
+            <span id="pageInfo"></span>
+            <button id="nextBtn">Next</button>
+        </div>
+    </div>
+
+ <script src="viewAllBooking_script.js"></script>
+</body>
+
+</html>

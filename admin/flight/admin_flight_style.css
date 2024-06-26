@@ -1,0 +1,153 @@
+body{
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+}
+.container {
+    height:80%;
+    width: 100%; 
+    max-width: 600px; /* Maximum width */
+    margin: 20px;
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+.segmented-control {
+    width: 90%;
+    display: flex;
+    border-bottom: 1px solid #ccc;
+    position: relative; /* Added for positioning the border */
+    z-index: 1; }
+.segmented-control::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #ccc; /* Color of the partition */
+    z-index: -1; /* Behind the tabs */
+}
+.segmented-control input[type="radio"] {
+    display: none;
+}
+.segmented-control label {
+    flex: 1;
+    text-align: center;
+    padding: 15px 0;
+    cursor: pointer;
+    color: #000;
+    transition: background-color 0.3s, color 0.3s;
+    position: relative;
+}
+.segmented-control label::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background-color: black; /* Black border for partition */
+}
+.segmented-control label:last-child::after {
+    display: none; /* Remove the partition border for the last tab */
+}
+.segmented-control label:hover {
+    background-color: #f0f0f0;
+}
+.segmented-control input[type="radio"]:checked + label {
+    background-color: #007bff;
+    color: #fff;
+}
+.content-container {
+    height: 100%;
+    overflow: auto;
+    border-radius: 0 0 20px 20px; /* Rounded bottom corners */
+}
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.user-form {
+    height: auto;
+    width: 90%;
+    max-width: 500px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.form-group button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    /* Blue button background */
+    color: #fff;
+    /* White button text color */
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.form-group button:hover {
+    background-color: #0056b3;
+    /* Darker blue on hover */
+}
+
+/* Media Queries */
+@media screen and (max-width: 768px) {
+    .user-form {
+        width: 70%;
+    }
+
+    .form-heading {
+        font-size: 24px;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .user-form {
+        width: 70%;
+        padding: 10px;
+    }
+
+    .form-group input {
+        padding: 6px;
+    }
+
+    .form-group button {
+        padding: 8px;
+    }
+}
+
+/* Centering the heading */
+.form-heading {
+    text-align: center;
+}
