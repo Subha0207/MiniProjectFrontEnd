@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Grid</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Your existing CSS */
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #d0f0dc;
+            /* Background color updated */
+        }
+
+        #addIcon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 4em;
+            color: green;
+            /* Customize the color */
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            background-color: #e0f7e9;
+            /* Background color updated */
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: left;
+            position: relative;
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .card p {
+            margin: 5px 0;
+        }
+
+        .card .icons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+
+        .card .icons i {
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #333;
+            transition: color 0.3s;
+        }
+
+        .card .icons i:hover {
+            color: #4CAF50;
+            /* Adjusted hover color */
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #searchBar {
+            width: 50%;
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        #searchBar:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #notFoundFrame {
+            display: none;
+            width: 100%;
+            height: 80vh;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Manage Routes</h1>
+    <input type="text" id="searchBar" placeholder="Search routes...">
+
+    <div class="grid-container" id="routeGrid">
+        <!-- Cards will be dynamically inserted here -->
+    </div>
+    <i id="addIcon" class="fas fa-plus-circle" onclick="window.location.href='/admin_part/add_route.html';"></i>
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Update Route</h2>
+            <form id="updateForm">
+                <input type="hidden" id="routeId">
+                <label for="flightId">Flight ID:</label>
+                <input type="number" id="flightId" name="flightId" required>
+                <label for="arrivalLocation">Arrival Location:</label>
+                <input type="text" id="arrivalLocation" name="arrivalLocation" required>
+                <label for="arrivalDateTime">Arrival DateTime:</label>
+                <input type="datetime-local" id="arrivalDateTime" name="arrivalDateTime" required>
+                <label for="departureLocation">Departure Location:</label>
+                <input type="text" id="departureLocation" name="departureLocation" required>
+                <label for="departureDateTime">Departure DateTime:</label>
+                <input type="datetime-local" id="departureDateTime" name="departureDateTime" required>
+                <label for="seatsAvailable">Seats Available:</label>
+                <input type="number" id="seatsAvailable" name="seatsAvailable" required>
+                <label for="noOfStops">No of Stops:</label>
+                <input type="number" id="noOfStops" name="noOfStops" required>
+                <label for="pricePerPerson">Price Per Person:</label>
+                <input type="number" id="pricePerPerson" name="pricePerPerson" required>
+                <button type="submit">Update Route</button>
+            </form>
+        </div>
+    </div>
+
+    <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+
+    <script>
+        const routeGrid = document.getElementById('routeGrid');
+        const searchBar = document.getElementById('searchBar');
+        const notFoundFrame = document.getElementById('notFoundFrame');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchRoutes();
+        });
+
+        const fetchRoutes = () => {
+            fetch('https://localhost:7127/api/Route/GetAllRoutes')
+                .then(response => response.json())
+                .then(data => {
+                    const routes = data;
+                    renderRoutes(routes);
+                })
+                .catch(error => {
+                    console.error('Error fetching routes:', error);
+                });
+        }
+
+        const renderRoutes = (routes) => {
+            routeGrid.innerHTML = '';
+            routes.forEach(route => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.setAttribute('data-route-id', route.routeId); // Add data attribute
+                card.innerHTML = `
+                    <h3>Route ID: ${route.routeId}</h3>
+                    <p>Flight ID: ${route.flightId}</p>
+                    <p>Arrival Location: ${route.arrivalLocation}</p>
+                    <p>Arrival DateTime: ${route.arrivalDateTime}</p>
+                    <p>Departure Location: ${route.departureLocation}</p>
+                    <p>Departure DateTime: ${route.departureDateTime}</p>
+                    <p>Seats Available: ${route.seatsAvailable}</p>
+                    <p>No of Stops: ${route.noOfStops}</p>
+                    <p>Price Per Person: Rs.${route.pricePerPerson}</p>
+                    <div class="icons">
+                        <i class="fas fa-edit" onclick="openUpdateModal(${route.routeId}, '${route.flightId}', '${route.arrivalLocation}', '${route.arrivalDateTime}', '${route.departureLocation}', '${route.departureDateTime}', ${route.seatsAvailable}, ${route.noOfStops}, ${route.pricePerPerson})"></i>
+                        <i class="fas fa-trash-alt" onclick="deleteRoute(${route.routeId})"></i>
+                    </div>
+                `;
+                routeGrid.appendChild(card);
+            });
+        }
+
+        const openUpdateModal = (routeId, flightId, arrivalLocation, arrivalDateTime, departureLocation, departureDateTime, seatsAvailable, noOfStops, pricePerPerson) => {
+            const modal = document.getElementById('updateModal');
+            modal.style.display = 'block';
+            document.getElementById('routeId').value = routeId;
+            document.getElementById('flightId').value = flightId;
+            document.getElementById('arrivalLocation').value = arrivalLocation;
+            document.getElementById('arrivalDateTime').value = arrivalDateTime;
+            document.getElementById('departureLocation').value = departureLocation;
+            document.getElementById('departureDateTime').value = departureDateTime;
+            document.getElementById('seatsAvailable').value = seatsAvailable;
+            document.getElementById('noOfStops').value = noOfStops;
+            document.getElementById('pricePerPerson').value = pricePerPerson;
+        }
+
+        const closeModal = () => {
+            const modal = document.getElementById('updateModal');
+            modal.style.display = 'none';
+        }
+
+        const updateRoute = (routeId, updatedRoute) => {
+            fetch(`https://localhost:7127/api/Route/UpdateRoute`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedRoute),
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log(`Route with ID ${routeId} updated successfully.`);
+                        fetchRoutes();
+                    } else {
+                        console.error(`Failed to update route with ID ${routeId}.`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating route:', error);
+                });
+        }
+
+
+
+        window.onclick = (event) => {
+            const modal = document.getElementById('updateModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.querySelector('.close').addEventListener('click', closeModal);
+
+        document.getElementById('updateForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const routeId = document.getElementById('routeId').value;
+            const updatedRoute = {
+                routeId: routeId,
+                flightId: document.getElementById('flightId').value,
+                arrivalLocation: document.getElementById('arrivalLocation').value,
+                arrivalDateTime: document.getElementById('arrivalDateTime').value,
+                departureLocation: document.getElementById('departureLocation').value,
+                departureDateTime: document.getElementById('departureDateTime').value,
+                seatsAvailable: document.getElementById('seatsAvailable').value,
+                noOfStops: document.getElementById('noOfStops').value,
+                pricePerPerson: document.getElementById('pricePerPerson').value,
+            };
+            updateRoute(routeId, updatedRoute);
+            closeModal();
+        });
+
+        searchBar.addEventListener('input', () => {
+            const searchTerm = searchBar.value.toLowerCase();
+            const filteredRoutes = Array.from(routeGrid.children).filter(card => {
+                const routeText = card.textContent.toLowerCase();
+                return routeText.includes(searchTerm);
+            });
+
+            routeGrid.innerHTML = '';
+            if (filteredRoutes.length > 0) {
+                notFoundFrame.style.display = 'none';
+                filteredRoutes.forEach(card => routeGrid.appendChild(card));
+            } else {
+                notFoundFrame.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>

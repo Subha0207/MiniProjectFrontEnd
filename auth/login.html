@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/utils/alert_toast.js"></script>
+    <title>Responsive Login Page</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Nunito, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .left {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: #0056b3;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .right {
+            flex: 3;
+            background-color: #9fc5e8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        .input-field {
+            margin-bottom: 15px;
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 5px;
+            color: black;
+        }
+
+        .input-field input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .button {
+            width: 100%;
+            padding: 10px;
+            background-color: #0056b3;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #004494;
+        }
+
+        .signin-text {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .signin-text a {
+            color: #0056b3;
+            text-decoration: none;
+        }
+
+        .signin-text a:hover {
+            text-decoration: underline;
+        }
+
+        .right h1 {
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        .right img {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .right {
+                flex: 1;
+                order: -1;
+                display: flex;
+                padding: 20px;
+            }
+
+            .left {
+                flex: 2;
+                box-shadow: none;
+            }
+
+            .right img {
+                max-width: 30%;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .right {
+                padding: 40px;
+            }
+
+            .right h1 {
+                margin-bottom: 40px;
+            }
+
+            .right img {
+                max-width: 50%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="left">
+            <div class="form-container">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <div class="input-field">
+                        <label for="user-id">User-Id</label>
+                        <input type="text" id="user-id" name="user-id" required>
+                    </div>
+                    <div class="input-field">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="button">Login</button>
+                </form>
+                <div class="signin-text">
+                    Don't have an account? <a href="register.html">Register</a>
+                </div>
+            </div>
+        </div>
+        <div class="right">
+            <h1>Welcome Back!</h1>
+            <img src="/images/login.gif" alt="Welcome Back GIF">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async function (event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+    
+            const userId = document.getElementById('user-id').value;
+            const password = document.getElementById('password').value;
+    
+            try {
+                const response = await fetch('https://localhost:7127/api/User/Login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId, password })
+                });
+    
+                if (response.ok) {
+                    const data = await response.json();
+                    // Store token, role, and id in local storage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('role', data.role);
+                    localStorage.setItem('userId', data.userId);
+                    console.log('Login successful:', data);
+    
+                    // Redirect based on role
+                    showAlert('Login successful!', 'alert-success');
+                    
+                    // Redirect after a short delay
+                    if (data.role === 'admin') {
+                        setTimeout(function () {
+                            window.location.href = '/admin_part/admin_home.html';
+                        }, 3000); 
+                    } else if (data.role === 'user') {
+                        setTimeout(function () {
+                            window.location.href = '/user_part/user_home/user_home.html';
+                        }, 3000);
+                    } else {
+                        setTimeout(function () {
+                            window.location.href = 'default_dashboard.html';
+                        }, 3000);
+                    }
+                } else {
+                    const errorData = await response.json();
+                    console.error('Login failed:', errorData.errorMessage);
+                    showAlert(`Login failed: ${errorData.errorMessage}`, 'alert-danger');
+                }
+            } catch (error) {
+                console.error('An error occurred:', error);
+                showAlert('An error occurred during login. Please try again.', 'alert-danger');
+            }
+        });
+    </script>
+    
+</body>
+
+</html>

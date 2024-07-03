@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refunds and Cancellations Information</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: Nunito, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            margin: 20px 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px 0;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .popup,
+        .delete-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            z-index: 1000;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 500;
+        }
+
+        .popup button,
+        .delete-popup button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .popup button#updateBtn,
+        .delete-popup button#confirmDeleteBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .popup button#closePopupBtn,
+        .delete-popup button#cancelDeleteBtn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .popup h2,
+        .delete-popup h2 {
+            margin-bottom: 20px;
+        }
+
+        .popup label {
+            display: flex;
+
+            align-items: center;
+
+            margin: 10px 0;
+        }
+
+        .popup input[type="radio"] {
+            margin-right: 10px;
+
+        }
+
+        .topContainer {
+            flex-direction: row;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+
+        }
+
+        /* iframe for not found results */
+        #notFoundFrame {
+            width: 70%;
+            height: 70vh;
+            border: none;
+            display: none;
+
+            margin: 20px auto;
+        }
+
+        /* Search bar container styling */
+        .search-container {
+            width: 40vw;
+            margin: 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Search input container styling */
+        .search-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 50px;
+            gap: 20px;
+        }
+
+        /* Search input styling */
+        .search-input {
+            width: calc(100% - 40px);
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            font-size: 16px;
+            box-shadow: none;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Filter dropdown styling */
+        .filter-dropdown {
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            font-size: 16px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Refunds </h1>
+    <div id="topContainer" class="topContainer">
+
+
+        <div id="searchBarContainer" class="search-container"></div>
+        <select class="filter-dropdown" id="refundFilter">
+            <option value="">All Refunds</option>
+            <option value="initiated">Initiated</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+        </select>
+    </div>
+    <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+    <table id="refundTable">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Refund ID</th>
+          
+                <th>Cancellation Reason</th>
+
+                <th>Total Amount</th>
+                <th>Refund Status</th>
+                <th>Update</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody id="refundTableBody">
+            <!-- Data will be dynamically populated here -->
+        </tbody>
+    </table>
+    <div id="popup" class="popup">
+        <h2>Update Refund Status</h2>
+        <label>
+            <input type="radio" name="refundStatus" value="approved" />
+            Approved
+        </label>
+        <label>
+            <input type="radio" name="refundStatus" value="rejected" />
+            Rejected
+        </label>
+        <br />
+        <button id="updateBtn">Update</button>
+        <button id="closePopupBtn">Cancel</button>
+    </div>
+
+
+    <div id="deletePopup" class="delete-popup">
+        <h2>Are you sure you want to delete this refund?</h2>
+        <button id="confirmDeleteBtn">Yes</button>
+        <button id="cancelDeleteBtn">No</button>
+    </div>
+
+    <div id="popupOverlay" class="popup-overlay"></div>
+    <script src="/utils/search.js"></script>
+    <script>
+        let currentRefundId = null;
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchContainer = handleSearchInput('Search by ...', 'refundTable');
+            document.getElementById('searchBarContainer').appendChild(searchContainer);
+
+        });
+        document.getElementById('refundFilter').addEventListener('change', function () {
+            const selectedStatus = this.value.toLowerCase();
+            const rows = document.getElementById('refundTableBody').getElementsByTagName('tr');
+            let hasVisibleRows = false;
+
+            for (let row of rows) {
+                const statusCell = row.getElementsByTagName('td')[4];
+
+                if (selectedStatus === '' || statusCell.textContent.toLowerCase().includes(selectedStatus)) {
+                    row.style.display = '';
+                    hasVisibleRows = true; // Mark that at least one row is visible
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+
+            // Show notFoundFrame if no rows are visible
+            document.getElementById('notFoundFrame').style.display = hasVisibleRows ? 'none' : 'block';
+        });
+
+
+
+        async function fetchBookingDetails(bookingId) {
+            try {
+                const response = await fetch(`https://localhost:7127/api/Booking/User/GetBookingById/${bookingId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const bookingDetails = await response.json();
+                return bookingDetails;
+            } catch (error) {
+                console.error('Error fetching booking details:', error);
+                return null;
+            }
+        }
+
+        async function fetchBookingId(cancellationId) {
+            try {
+                const response = await fetch(`https://localhost:7127/api/Cancellation/${cancellationId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const cancellation = await response.json();
+                return cancellation.bookingId;
+            } catch (error) {
+                console.error('Error fetching bookingId:', error);
+                return null;
+            }
+        }
+
+        async function fetchRefundsAndPopulateTable() {
+            try {
+                const response = await fetch('https://localhost:7127/api/Refund/GetAllRefunds');
+                const refunds = await response.json();
+
+                const tableBody = document.getElementById('refundTableBody');
+
+                for (const refund of refunds) {
+                    const bookingId = await fetchBookingId(refund.cancellationId);
+                    if (bookingId !== null) {
+                        const bookingDetails = await fetchBookingDetails(bookingId);
+                        const row = document.createElement('tr');
+                        row.innerHTML = `  <td>${bookingDetails.userId}</td>
+                            <td>${refund.refundId}</td>
+                       
+                            <td>${refund.cancellationReason}</td>
+                          
+                            <td>${bookingDetails.totalAmount}</td>
+                                 <td>${refund.refundStatus}</td>
+                            <td><i class="fas fa-edit updateBtn" data-refund-id="${refund.refundId}"></i></td>
+                            <td><i class="fas fa-trash-alt deleteBtn" data-refund-id="${refund.refundId}"></i></td>
+                        `;
+                        tableBody.appendChild(row);
+                    } else {
+                        console.error('No bookingId found for cancellationId:', refund.cancellationId);
+                    }
+                }
+
+                // Add event listeners for update buttons
+                const updateButtons = document.querySelectorAll('.updateBtn');
+                updateButtons.forEach(button => {
+                    button.addEventListener('click', () => showUpdatePopup(button.getAttribute('data-refund-id')));
+                });
+
+                // Add event listeners for delete buttons
+                const deleteButtons = document.querySelectorAll('.deleteBtn');
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', () => showDeletePopup(button.getAttribute('data-refund-id')));
+                });
+
+            } catch (error) {
+                console.error('Error fetching refunds:', error);
+            }
+        }
+
+        function showUpdatePopup(refundId) {
+            currentRefundId = refundId;
+            document.getElementById('popup').style.display = 'block';
+            document.getElementById('popupOverlay').style.display = 'block';
+        }
+
+        function showDeletePopup(refundId) {
+            currentRefundId = refundId;
+            document.getElementById('deletePopup').style.display = 'block';
+            document.getElementById('popupOverlay').style.display = 'block';
+        }
+
+        function closePopups() {
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('deletePopup').style.display = 'none';
+            document.getElementById('popupOverlay').style.display = 'none';
+        }
+
+        document.getElementById('closePopupBtn').addEventListener('click', closePopups);
+        document.getElementById('cancelDeleteBtn').addEventListener('click', closePopups);
+
+        document.getElementById('updateBtn').addEventListener('click', async () => {
+            const newStatus = document.querySelector('input[name="refundStatus"]:checked').value;
+            try {
+                const response = await fetch(`https://localhost:7127/api/Refund/UpdateRefund`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ refundId: currentRefundId, refundStatus: newStatus }),
+                });
+
+                if (response.ok) {
+                    alert('Refund status updated successfully');
+                    location.reload(); // Reload the page to see the changes
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error data:', errorData);
+                    throw new Error('Failed to update refund status');
+                }
+            } catch (error) {
+                console.error('Error updating refund status:', error);
+                alert('Failed to update refund status');
+            } finally {
+                closePopups();
+            }
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`https://localhost:7127/api/Refund/DeleteRefund/${currentRefundId}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert('Refund deleted successfully');
+                    location.reload(); // Reload the page to see the changes
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error data:', errorData);
+                    throw new Error('Failed to delete refund');
+                }
+            } catch (error) {
+                console.error('Error deleting refund:', error);
+                alert('Failed to delete refund');
+            } finally {
+                closePopups();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', fetchRefundsAndPopulateTable);
+    </script>
+</body>
+
+</html>

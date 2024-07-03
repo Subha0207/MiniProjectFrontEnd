@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancellations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        h1 {
+            text-align: center;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            font-size: 18px;
+            background-color:#E0FFFF;
+            margin: 20px 10%;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: center;
+        }
+
+        th {
+            background-color:  #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        
+        #notFoundFrame {
+            width: 70%;
+            height: 70vh;
+            border: none;
+            display: none;
+            margin: 20px auto;
+        }
+
+        .search-container {
+            width: 40vw;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .search-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 50px;
+            gap: 20px;
+        }
+
+        .search-input {
+            width: calc(100% - 40px);
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            font-size: 16px;
+            box-shadow: none;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            font-size: 20px;
+            color: #888;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .add-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal input,
+        .modal textarea,
+        .modal select {
+            width: calc(100% - 24px);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .modal button {
+            background-color: blue;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .modal button:hover {
+            background-color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Cancellations</h1>
+    <div id="searchBarContainer" class="search-container"></div>
+    <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+    <table id="cancellationsTable">
+        <thead>
+            <tr>
+                <th>Cancellation ID</th>
+                <th>Reason</th>
+                
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="add-icon" id="addIcon">+</div>
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Cancellation</h2>
+            <select id="bookingId" required>
+                <option value="" disabled selected>Select Booking ID</option>
+            </select>
+            <select id="paymentId" required>
+                <option value="" disabled selected>Select Payment ID</option>
+            </select>
+            
+            <textarea id="reason" placeholder="Reason" rows="4" required></textarea>
+            <button id="submitBtn">Submit</button>
+        </div>
+    </div>
+    <script src="/utils/search.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchContainer = handleSearchInput('Search by Cancellation ID...', 'cancellationsTable');
+            document.getElementById('searchBarContainer').appendChild(searchContainer);
+
+            fetchCancellations();
+
+            const addIcon = document.getElementById('addIcon');
+            const modal = document.getElementById('addModal');
+            const closeBtn = document.querySelector('.close');
+            const submitBtn = document.getElementById('submitBtn');
+
+            addIcon.addEventListener('click', () => {
+                modal.style.display = 'block';
+                loadBookingIds();
+                loadPaymentIds();
+            });
+
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            submitBtn.addEventListener('click', () => {
+                const bookingId = document.getElementById('bookingId').value;
+                const paymentId = document.getElementById('paymentId').value;
+                const reason = document.getElementById('reason').value;
+
+                const data = {
+                    bookingId: parseInt(bookingId),
+                    paymentId: parseInt(paymentId),
+                    reason: reason
+                };
+
+                fetch('https://localhost:7127/api/Cancellation/AddCancellation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        console.log('Cancellation added:', result);
+                        modal.style.display = 'none';
+                        fetchCancellations();
+                    })
+                    .catch(error => {
+                        console.error('Error adding cancellation:', error);
+                    });
+            });
+        });
+function loadPaymentIds() {
+    fetch('https://localhost:7127/api/Payment/GetAllPayments', {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(payments => {
+            const paymentSelect = document.getElementById('paymentId');
+            paymentSelect.innerHTML = '<option value="" disabled selected>Select Payment ID</option>';
+            payments.forEach(payment => {
+                const option = document.createElement('option');
+                option.value = payment.paymentId;
+                option.textContent = payment.paymentId;
+                paymentSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching payment IDs:', error);
+        });
+}
+        function loadBookingIds() {
+            const userId = localStorage.getItem('userId'); // Assuming userId is stored in localStorage
+            fetch(`https://localhost:7127/api/Booking/GetAllBookingsByUserId?userId=${userId}`, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(bookings => {
+                    const bookingSelect = document.getElementById('bookingId');
+                    bookingSelect.innerHTML = '<option value="" disabled selected>Select Booking ID</option>';
+                    bookings.forEach(booking => {
+                        const option = document.createElement('option');
+                        option.value = booking.bookingId;
+                        option.textContent = booking.bookingId;
+                        bookingSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching booking IDs:', error);
+                });
+        }
+
+        function fetchCancellations() {
+            console.log('Fetching cancellations...');
+            fetch('https://localhost:7127/api/Cancellation/GetAllCancellations', {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched data:', data);
+                    fetchAndDisplayUserDetails(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    const notFoundFrame = document.getElementById('notFoundFrame');
+                    notFoundFrame.style.display = 'block';
+                    const table = document.querySelector('#cancellationsTable');
+                    table.style.display = 'none';
+                });
+        }
+
+        function fetchAndDisplayUserDetails(cancellations) {
+            const promises = cancellations.map(cancellation => {
+                return fetch(`https://localhost:7127/api/Booking/User/GetBookingById/${cancellation.bookingId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(bookingData => {
+                        cancellation.userId = bookingData.userId;
+                        return cancellation;
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching booking data for booking ID ${cancellation.bookingId}:`, error);
+                        cancellation.userId = 'N/A';
+                        return cancellation;
+                    });
+            });
+
+            Promise.all(promises)
+                .then(updatedCancellations => {
+                    updateTable(updatedCancellations);
+                });
+        }
+
+        function updateTable(data) {
+            const table = document.querySelector('#cancellationsTable');
+            const tableBody = document.querySelector('#cancellationsTable tbody');
+            const notFoundFrame = document.getElementById('notFoundFrame');
+
+            if (data.length === 0) {
+                console.log('No cancellations found.');
+                table.style.display = 'none';
+                notFoundFrame.style.display = 'block';
+            } else {
+                console.log('Displaying cancellations:', data);
+                tableBody.innerHTML = '';
+                notFoundFrame.style.display = 'none';
+                data.forEach(cancellation => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${cancellation.cancellationId}</td>
+                        <td>${cancellation.reason}</td>
+                   
+                    `;
+                    tableBody.appendChild(row);
+                });
+                table.style.display = 'table';
+            }
+        }
+    </script>
+</body>
+
+</html>

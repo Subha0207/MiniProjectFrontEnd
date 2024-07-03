@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paginated Data Table</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <link rel="stylesheet" href="viewAllBooking_style.css">
+   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+    <center>    <h1>Manage Booking</h1></center>
+
+    <div class="container">
+        <div class="operation-container">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for bookings...">
+            </div>
+     
+
+           
+        </div>
+        <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+        <div id="dataTableContainer" class="data-table-container">
+         
+        </div>
+        <div id="cardsContainer" class="cards-container">
+         
+        </div>
+        <div class="pagination">
+            <button id="prevBtn" disabled>Previous</button>
+            <span id="pageInfo"></span>
+            <button id="nextBtn">Next</button>
+        </div>
+    </div>
+
+ <script src="viewAllBooking_script.js"></script>
+</body>
+
+</html>

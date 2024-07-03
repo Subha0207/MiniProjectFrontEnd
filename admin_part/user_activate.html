@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            margin: 20px 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px 0;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Switch styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        #notFoundFrame {
+            width: 70%;
+            height: 70vh;
+            border: none;
+            display: none;
+            margin: 20px auto;
+            /* Center iframe horizontally */
+        }
+
+        /* Search bar container styling */
+        .search-container {
+            width: 80%;
+            margin: 20px auto;
+            /* Center the search bar horizontally and add vertical margin */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Search input styling */
+        .search-input {
+            width: 60%;
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            font-size: 16px;
+            box-shadow: none;
+            /* Removed shadow from input */
+            transition: box-shadow 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Filter dropdown styling */
+        .filter-dropdown {
+            padding: 12px;
+            border-radius: 50px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .filter-dropdown:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>User Details</h1>
+
+    <!-- Search container -->
+    <div id="searchBarContainer" class="search-container"></div>
+
+    <!-- iframe for not found results -->
+    <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table rows will be populated here by JavaScript -->
+        </tbody>
+    </table>
+    <script src="/utils/search.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchContainer = handleSearchInput('Search ...', 'userTable');
+
+            // Create filter dropdown
+            const filterDropdown = document.createElement('select');
+            filterDropdown.classList.add('filter-dropdown');
+            filterDropdown.innerHTML = `
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="disabled">Disabled</option>
+            `;
+            filterDropdown.addEventListener('change', function () {
+                filterAndSearchUsers(document.querySelector('.search-input').value, 'userTable');
+            });
+
+            // Append search input and filter dropdown to search container
+            searchContainer.appendChild(filterDropdown);
+            document.getElementById('searchBarContainer').appendChild(searchContainer);
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('https://localhost:7127/api/User/GetAllUserInfos') // Replace with your actual API URL
+                .then(response => response.json())
+                .then(data => {
+                    populateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                });
+        });
+
+        let usersData = []; // Store fetched users data
+
+        function populateTable(users) {
+            usersData = users; // Save fetched data
+            const tbody = document.querySelector('#userTable tbody');
+            tbody.innerHTML = ''; // Clear existing rows
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.id = `user-${user.userId}`;
+                row.innerHTML = `
+                    <td>${user.userId}</td>
+                    <td>${user.email}</td>
+                    <td class="status">${user.status}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" ${user.status === 'active' ? 'checked' : ''} onchange="updateUserStatus(${user.userId}, this.checked)">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterAndSearchUsers(searchValue, tableId) {
+            searchValue = searchValue.toLowerCase().trim();
+            const filterValue = document.querySelector('.filter-dropdown').value;
+            let filteredUsers = usersData;
+
+            if (filterValue !== 'all') {
+                filteredUsers = usersData.filter(user => user.status === filterValue);
+            }
+
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            tbody.innerHTML = ''; // Clear existing rows
+
+            filteredUsers = filteredUsers.filter(user => {
+                return Object.values(user).some(val =>
+                    String(val).toLowerCase().includes(searchValue)
+                );
+            });
+
+            filteredUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.id = `user-${user.userId}`;
+                row.innerHTML = `
+                    <td>${user.userId}</td>
+                    <td>${user.email}</td>
+                    <td class="status">${user.status}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" ${user.status === 'active' ? 'checked' : ''} onchange="updateUserStatus(${user.userId}, this.checked)">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            const notFoundFrame = document.getElementById('notFoundFrame');
+            const table = document.getElementById(tableId);
+            if (filteredUsers.length === 0) {
+                notFoundFrame.style.display = 'block';
+                table.style.display = 'none';
+            } else {
+                notFoundFrame.style.display = 'none';
+                table.style.display = 'table';
+            }
+        }
+
+        function updateUserStatus(userId, isActive) {
+            const status = isActive ? 'active' : 'disabled';
+            const apiUrl = isActive ?
+                'https://localhost:7127/api/User/admin/UpdateUserActivation' :
+                'https://localhost:7127/api/User/admin/UpdateUserDeactivation';
+
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    status: status
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update the status in the usersData array
+                    const user = usersData.find(user => user.userId === userId);
+                    if (user) {
+                        user.status = status;
+                    }
+
+                    // Update the status in the table
+                    const row = document.getElementById(`user-${userId}`);
+                    const statusCell = row.querySelector('.status');
+                    statusCell.textContent = status;
+                    alert('User status updated successfully');
+                })
+                .catch(error => {
+                    console.error('Error updating user status:', error);
+                });
+        }
+
+        function handleSearchInput(placeholder, tableId) {
+            const searchContainer = document.createElement('div');
+            searchContainer.classList.add('search-container');
+
+            const searchInput = document.createElement('input');
+            searchInput.setAttribute('type', 'text');
+            searchInput.setAttribute('placeholder', placeholder);
+            searchInput.classList.add('search-input');
+            searchInput.addEventListener('input', function () {
+                filterAndSearchUsers(this.value, tableId);
+            });
+
+            searchContainer.appendChild(searchInput);
+            return searchContainer;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Admin Page - Flight Management</title>
+    <style>
+        /* Your custom styles here */
+        body {
+            font-family: 'Nunito', sans-serif;
+            font-size: 24px;
+        }
+
+        .top-app-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+        }
+
+        .container {
+            width: 70%;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin: 20px;
+        }
+
+        .logo {
+            width: 40px;
+            height: auto;
+            margin-right: 10px;
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .logout-btn {
+            background-color: #fff;
+            color: #333;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .grid-container {
+            display: grid;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        @media screen and (min-width: 1200px) {
+            .grid-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media screen and (max-width: 1199px) and (min-width: 601px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+        .grid-item {
+            background-color: #ddd;
+            padding: 20px;
+            text-align: center;
+            grid-column: span 1;
+            border-radius: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .grid-item:hover {
+            background-color: #ccc;
+        }
+
+        .grid-item a {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .image-container {
+            width: 30%;
+            margin: auto;
+            margin-top: 20px;
+        }
+
+        .image-container img {
+            width: 100%;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-app-bar">
+        <div class="logo-container">
+            <img src="/images/logo.jpg" alt="Flyeasy Logo" class="logo">
+            <div class="logo-text">Flyeasy</div>
+        </div>
+
+        <button class="logout-btn" id="logout-button">LOGOUT</button>
+    </div>
+
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <h4>Welcome to the Flight Management Dashboard!</h4>
+
+        <div class="image-container">
+            <img src="/images/admin_ui.png" alt="Admin UI" />
+        </div>
+
+        <div class="grid-container">
+            <div class="grid-item">
+                <a href="/admin_part/flight.html">Manage Flights</a>
+            </div>
+            <div class="grid-item">
+                <a href="/admin_part/view_route.html">Manage Routes</a>
+            </div>
+            <div class="grid-item">
+                <a href="/admin_part/view_sub_route.html">Manage SubRoutes</a>
+            </div>
+            <div class="grid-item">
+                <a href="/admin_part/booking/viewAllBooking.html">Manage Booking</a>
+            </div>
+            <div class="grid-item">
+                <a href="/admin_part/cancellation.html">Manage Cancellation</a>
+            </div>
+            <div class="grid-item">
+                <a href="/admin_part/refund.html">Manage Refund</a>
+            </div>
+            <div class="grid-item">
+                <a href="/admin_part/payment.html">Manage Payment</a>
+            </div>
+            <div class="grid-item">
+                <a href="/admin_part/user_activate.html">Manage User</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Your custom script -->
+  <script src="/utils/alert_toast.js"></script>
+  <script>
+        document.getElementById('logout-button').addEventListener('click', function (event) {
+            event.preventDefault();
+
+            // Clear localStorage
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userId');
+
+            // Show Bootstrap alert
+            showAlert('Logged out successfully!', 'alert-success');
+            
+            // Redirect after a short delay
+            setTimeout(function () {
+                window.location.href = '/auth/login.html';
+            }, 1500);
+        });
+
+      
+    </script>
+</body>
+
+</html>

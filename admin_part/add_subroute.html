@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Booking Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 20px;
+         
+            background-color: #d0f0dc;
+        }
+        h1{
+            text-align: center;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        select,
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-part {
+            margin-bottom: 30px;
+        }
+
+        input[type="submit"],
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-part">
+            <h1>Add SubRoute</h1>
+            <form id="routeSelectionForm">
+                <div class="form-group">
+                    <label for="routeDropdown">Select Route/Flight:</label>
+                    <select id="routeDropdown" required>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <input type="submit" value="Next">
+            </form>
+        </div>
+
+        <div class="form-part" id="flightDetailsForms">
+            <!-- Flight details forms will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const routeSelectionForm = document.getElementById('routeSelectionForm');
+            const flightDetailsForms = document.getElementById('flightDetailsForms');
+            let formData = { Stops: [] }; // Object to store form data
+
+            // Fetch routes data from API
+            fetch('https://localhost:7127/api/Route/GetAllRoutes')
+                .then(response => response.json())
+                .then(data => {
+                    const routeDropdown = document.getElementById('routeDropdown');
+
+                    // Filter routes to include only those with noOfStops as 1 or 2
+                    const filteredRoutes = data.filter(route => route.noOfStops === 1 || route.noOfStops === 2);
+
+                    // Populate dropdown options for routes
+                    filteredRoutes.forEach(route => {
+                        const option = document.createElement('option');
+                        option.value = route.routeId;
+                        option.textContent = `${route.routeId} - ${route.departureLocation} - ${route.arrivalLocation}`;
+                        routeDropdown.appendChild(option);
+                    });
+
+                    // Add event listener for routeSelectionForm submission
+                    routeSelectionForm.addEventListener('submit', function (event) {
+                        event.preventDefault();
+                        const selectedRouteId = routeDropdown.value;
+
+                        // Fetch selected route details
+                        fetch(`https://localhost:7127/api/Route/GetRoute/${selectedRouteId}`)
+                            .then(response => response.json())
+                            .then(selectedRoute => {
+                                // Store the routeId and flightId in formData
+                                formData.RouteId = selectedRouteId;
+                                formData.FlightId = selectedRoute.flightId;
+
+                                // Determine number of stops
+                                const numberOfStops = selectedRoute.noOfStops;
+
+                                // Clear existing flight details forms
+                                flightDetailsForms.innerHTML = '';
+
+                                // Generate forms based on number of stops
+                                for (let i = 0; i <= numberOfStops; i++) {
+                                    const form = generateFlightDetailsForm(i + 1); // Generate flight details form
+                                    flightDetailsForms.appendChild(form); // Append form to flightDetailsForms
+                                }
+
+                                // Add a submit button at the end of the forms
+                                const submitButton = document.createElement('button');
+                                submitButton.type = 'button';
+                                submitButton.textContent = 'Submit';
+                                submitButton.onclick = handleSubmit;
+                                flightDetailsForms.appendChild(submitButton);
+
+                                // Fetch flight data for dropdown integration
+                                fetch('https://localhost:7127/api/Flight/GetAllFlights')
+                                    .then(response => response.json())
+                                    .then(flightData => {
+                                        // Populate each flight name dropdown with the fetched flight data
+                                        for (let i = 1; i <= numberOfStops + 1; i++) {
+                                            const flightNameDropdown = document.getElementById(`flightNameDropdown${i}`);
+
+                                            // Clear existing options
+                                            flightNameDropdown.innerHTML = '';
+
+                                            // Populate flight name dropdown options
+                                            flightData.forEach(flight => {
+                                                const option = document.createElement('option');
+                                                option.value = flight.flightId;
+                                                option.textContent = `${flight.flightName} - ${flight.seatCapacity} seats`;
+                                                flightNameDropdown.appendChild(option);
+                                            });
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error fetching flights:', error);
+                                    });
+                            })
+                            .catch(error => {
+                                console.error('Error fetching selected route:', error);
+                            });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching routes:', error);
+                });
+
+            function generateFlightDetailsForm(formNumber) {
+                const form = document.createElement('div');
+                form.id = `flightDetailsForm${formNumber}`;
+                form.innerHTML = `
+                    <h2>Stop Details ${formNumber}</h2>
+                    <div class="form-group">
+                        <label for="departureLocation${formNumber}">Departure Location:</label>
+                        <input type="text" id="departureLocation${formNumber}" name="departureLocation${formNumber}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="arrivalLocation${formNumber}">Arrival Location:</label>
+                        <input type="text" id="arrivalLocation${formNumber}" name="arrivalLocation${formNumber}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="departureTime${formNumber}">Departure Date and Time:</label>
+                        <input type="datetime-local" id="departureTime${formNumber}" name="departureTime${formNumber}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="arrivalTime${formNumber}">Arrival Date and Time:</label>
+                        <input type="datetime-local" id="arrivalTime${formNumber}" name="arrivalTime${formNumber}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="flightNameDropdown${formNumber}">Flight Name:</label>
+                        <select id="flightNameDropdown${formNumber}" name="flightNameDropdown${formNumber}" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <hr>`;
+                return form;
+            }
+
+            function handleSubmit() {
+                // Collect data from each dynamically generated form
+                const forms = flightDetailsForms.querySelectorAll('div[id^="flightDetailsForm"]');
+                formData.Stops = []; // Initialize Stops array in formData
+
+                forms.forEach((form, index) => {
+                    const formNumber = index + 1;
+                    const stopData = {
+                        SubFlightId: parseInt(document.getElementById(`flightNameDropdown${formNumber}`).value, 10),
+                        ArrivalLocation: document.getElementById(`arrivalLocation${formNumber}`).value,
+                        ArrivalDateTime: document.getElementById(`arrivalTime${formNumber}`).value,
+                        DepartureLocation: document.getElementById(`departureLocation${formNumber}`).value,
+                        DepartureDateTime: document.getElementById(`departureTime${formNumber}`).value
+                    };
+                    formData.Stops.push(stopData); // Add stop data to Stops array
+                });
+
+                const payload = {
+                    FlightId: parseInt(formData.FlightId, 10),
+                    RouteId: parseInt(formData.RouteId, 10),
+                    Stops: formData.Stops
+                };
+
+                // Log the payload to the console
+                console.log('Payload:', JSON.stringify(payload, null, 2));
+
+                // Send collected data to the API
+                fetch('https://localhost:7127/api/SubRoute/AddSubRoute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    alert('SubRoute added successfully!');
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding the SubRoute.');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

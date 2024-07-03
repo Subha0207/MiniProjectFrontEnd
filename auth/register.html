@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="/utils/alert_toast.js"></script>
+    <title>Responsive Register Page</title>
+
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Nunito, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+        }
+
+        .left,
+        .right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .left {
+            flex: 2;
+            background-color: #e0f7e9;
+            /* Light green */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .right {
+            flex: 3;
+            background-color: #d0f0dc;
+            /* Slightly darker light green */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #f5fff8;
+            /* Very light green */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: black;
+            /* Dark green */
+        }
+
+        .input-field {
+            margin-bottom: 15px;
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 5px;
+            color: black;
+            /* Dark green */
+        }
+
+        .input-field input,
+        .input-field select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #a8e0c1;
+            /* Light green */
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            /* Medium green */
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #218838;
+            /* Darker medium green */
+        }
+
+        .signin-text {
+            margin-top: 20px;
+            text-align: center;
+            color: black;
+        }
+
+        .signin-text a {
+            color: #218838;
+            /* Darker medium green */
+            text-decoration: none;
+        }
+
+        .signin-text a:hover {
+            text-decoration: underline;
+        }
+
+        .right h1 {
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        .right img {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .right {
+                flex: 3;
+                padding: 20px;
+                order: -1;
+            }
+
+            .left {
+                flex: 1;
+                box-shadow: none;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .right {
+                padding: 40px;
+            }
+
+            .right h1 {
+                margin-bottom: 40px;
+            }
+
+            .right img {
+                max-width: 50%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="right">
+            <h1>Travel made easier than ever</h1>
+            <img src="/images/register.gif" alt="Welcome GIF">
+        </div>
+        <div class="left">
+            <div class="form-container">
+                <h2>Register</h2>
+                <form id="register-form">
+                    <div class="input-field">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="input-field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="input-field">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="input-field">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" name="confirm-password" required>
+                    </div>
+                    <div class="input-field">
+                        <label for="role">Role</label>
+                        <select id="role" name="role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="button">Register</button>
+                </form>
+                <div class="signin-text">
+                    Already have an account? <a href="login.html">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get form data
+            const name = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const role = document.getElementById('role').value; // Get selected role from dropdown
+
+
+            // Prepare data for API request
+            const data = {
+                name: name,
+                email: email,
+                password: password,
+                confirmPassword: confirmPassword,
+                role: role
+            };
+
+            try {
+                const response = await fetch('https://localhost:7127/api/User/Register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const responseData = await response.json();
+                    const userId = responseData.userId; // Assuming your API returns userId
+                  
+
+                    // Show Bootstrap alert
+                    showAlert(`Registration successful! Your user ID is ${userId}. Please login.`, 'alert-success');
+
+                    // Redirect after a short delay
+                    setTimeout(function () {
+                        window.location.href = '/auth/login.html';
+                    }, 1500);
+                   
+                } else {
+                    
+                    const errorData = await response.json();
+                    console.error('Error registering:', errorData.errorMessage);
+                    showAlert(`Error registering: ${errorData.errorMessage}`, 'alert-danger');
+                }
+            } catch (error) {
+                console.error('Error registering:', error);
+              
+            }
+        });
+    </script>
+</body>
+
+</html>
