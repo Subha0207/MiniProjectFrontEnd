@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="select_flight_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="left-container" id="left-container">
+            <div class="price-container">
+                <h2>Price</h2>
+                <div class="slider">
+                    <div class="demo">
+
+
+                        <div id="slider-range"></div>
+                        <div class="amount-container">
+                            <div id="min-amount" class="amount"></div>
+                            <div id="max-amount" class="amount"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+<!-- 
+            <h3>Departure time</h3>
+            <div class="time-container" id="departure-container">
+                <div class="box" data-time="00:00-06:00">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                    <div class="text">00:00-06:00</div>
+                </div>
+                <div class="box" data-time="06:00-12:00">
+                    <i class="fa-solid fa-sun"></i>
+                    <div class="text">06:00-12:00</div>
+                </div>
+                <div class="box" data-time="12:00-18:00">
+                    <i class="fa-solid fa-cloud-moon"></i>
+                    <div class="text">12:00-18:00</div>
+                </div>
+                <div class="box" data-time="18:00-24:00">
+                    <i class="fa-solid fa-moon"></i>
+                    <div class="text">18:00-24:00</div>
+                </div>
+            </div>
+
+            <h3>Arrival time</h3>
+            <div class="time-container" id="arrival-container">
+                <div class="box" data-time="00:00-06:00">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                    <div class="text">00:00-06:00</div>
+                </div>
+                <div class="box" data-time="06:00-12:00">
+                    <i class="fa-solid fa-sun"></i>
+                    <div class="text">06:00-12:00</div>
+                </div>
+                <div class="box" data-time="12:00-18:00">
+                    <i class="fa-solid fa-cloud-moon"></i>
+                    <div class="text">12:00-18:00</div>
+                </div>
+                <div class="box" data-time="18:00-24:00">
+                    <i class="fa-solid fa-moon"></i>
+                    <div class="text">18:00-24:00</div>
+                </div>
+            </div> -->
+
+
+
+            <h2>Stops</h2>
+
+            <!-- <div id="stop-filters">
+                <input type="checkbox" id="stops-0" name="stops" value="0">
+                <label for="stops-0">Non-stop</label>
+                <input type="checkbox" id="stops-1" name="stops" value="1">
+                <label for="stops-1">1 Stop</label>
+                <input type="checkbox" id="stops-2" name="stops" value="2">
+                <label for="stops-2">2 Stops</label>
+               
+            </div> -->
+
+            <div id="stop-filters">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="stops-0" name="stops" value="0">
+                    <label for="stops-0">Non-stop</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="stops-1" name="stops" value="1">
+                    <label for="stops-1">1 Stop</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="stops-2" name="stops" value="2">
+                    <label for="stops-2">2 Stops</label>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="main-container">
+            <h1>Flight Booking</h1>
+            <div class="stepper">
+                <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Select</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Book & Pay</div>
+                </div>
+
+            </div>
+            <div class="step-content active" data-step="1">
+                <p>Select your flight from the options below.</p>
+
+                <div id="flight-cards" data-flight-id="${flight.FlightId}">
+
+                </div>
+                <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+                <button id="next-btn">Continue</button>
+            </div>
+            <div class="step-content" data-step="2">
+                <div class="card">
+                    <h3>Book and Pay</h3>
+                    <div id="no-of-persons-container">
+                        <label for="no-of-persons">Number of Persons:</label>
+                        <button id="decrement-btn">-</button>
+                        <span id="no-of-persons">1</span>
+                        <button id="increment-btn">+</button>
+                    </div>
+                    <button id="book-btn">Book</button>
+                </div>
+                <div class="card">
+                    <!-- <div id="total-cost"></div> -->
+                    <h3>Payment</h3>
+
+                    <div class="payment-card">
+
+                        <div id="payment-options">
+                            <div class="payment-option disabled">UPI</div>
+                            <div class="payment-option disabled">Credit Card</div>
+                            <div class="payment-option disabled">Debit Card</div>
+                        </div>
+                    </div>
+
+                    <button id="pay-btn" class="disabled">Pay</button>
+                </div>
+
+                <!-- HTML for custom alert box -->
+                <div id="customAlert" class="custom-alert">
+                    <div class="alert-content">
+                        <span class="close-alert">&times;</span>
+                        <p id="alertMessage"></p>
+                    </div>
+                </div>
+
+
+                <button id="prev-btn">Previous</button>
+                <button id="finish-btn">Finish</button>
+            </div>
+
+
+
+        </div>
+        <div class="floating-icon" id="floating-icon">
+            <i class="fa fa-filter"></i>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="select_flight_script.js"></script>
+
+</body>
+
+</html>
