@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentSort = '';
 
     const dataTableContainer = document.getElementById('dataTableContainer');
+    const dataTable = document.getElementById('dataTable');
     const cardsContainer = document.getElementById('cardsContainer');
     const pageInfo = document.getElementById('pageInfo');
     const prevBtn = document.getElementById('prevBtn');
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('searchInput');
     const sortSelect = document.getElementById('sortSelect');
     const notFoundFrame = document.getElementById('notFoundFrame');
-
+    const blankPageFrame = document.getElementById('blankPageFrame');
     async function fetchData() {
         try {
             const response = await fetch(apiUrl, {
@@ -29,7 +30,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const data = await response.json();
+            if (data.length==0){
+                blankPageFrame.style.display = 'block';
+            }
             return data;
+            
         } catch (error) {
             console.error('Error fetching data:', error);
             return [];
@@ -50,8 +55,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
   
 
-    async function renderTable(page, query = '', sortBy = '') {
+    async function renderTable(page, query = '') {
         const data = await fetchData();
+        if (data.length === 0) {
+            // Display blankpage.html as an iframe when API returns empty result
+            const iframe = document.createElement('iframe');
+            iframe.src = 'blankpage.html';
+            iframe.style.width = '100%';
+            iframe.style.height = '100vh';
+            iframe.style.border = 'none';
+
+            // Hide other elements and display the iframe
+            dataTableContainer.style.display = 'none';
+            cardsContainer.style.display = 'none';
+            notFoundFrame.style.display = 'none';
+            blankPageFrame.style.display = 'block';
+            blankPageFrame.innerHTML = '';
+            blankPageFrame.appendChild(iframe);
+            return;
+        }
         let filteredData = filterData(data, query);
 
         if (filteredData.length === 0) {
@@ -146,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
     prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
-            renderTable(currentPage, searchInput.value, currentSort);
+            renderTable(currentPage, searchInput.value);
         }
     });
 
@@ -155,23 +177,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const filteredData = filterData(data, searchInput.value);
             if (currentPage < Math.ceil(filteredData.length / rowsPerPage)) {
                 currentPage++;
-                renderTable(currentPage, searchInput.value, currentSort);
+                renderTable(currentPage, searchInput.value);
             }
         });
     });
 
     searchInput.addEventListener('input', () => {
         currentPage = 1; // Reset to first page when searching
-        renderTable(currentPage, searchInput.value, currentSort);
+        renderTable(currentPage, searchInput.value);
     });
 
-    sortSelect.addEventListener('change', () => {
-        const sortBy = sortSelect.value;
-        renderTable(currentPage, searchInput.value, sortBy);
-    });
+  
 
     window.addEventListener('resize', () => {
-        renderTable(currentPage, searchInput.value, currentSort);
+        renderTable(currentPage, searchInput.value);
     });
 
     renderTable(currentPage);

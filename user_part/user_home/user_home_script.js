@@ -15,9 +15,7 @@ document.getElementById('logout-button').addEventListener('click', function(even
     event.preventDefault(); 
     
     // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('userId');
+  localStorage.clear();
 
    
     window.location.href = '/auth/login.html'; 
@@ -34,7 +32,7 @@ document.getElementById('search-button').addEventListener('click', function(even
     event.preventDefault(); // Prevent default form submission behavior (if inside a form)
 
     // Redirect to the viewbooking page
-    window.location.href = '/user_select/select_flight.html'; // Replace with your actual viewbooking page URL
+    window.location.href = '/user_part/user_select/select_flight.html'; // Replace with your actual viewbooking page URL
 });
 document.addEventListener("DOMContentLoaded", function () {
     // Fetch departure locations

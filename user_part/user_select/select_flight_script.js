@@ -4,16 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const nextBtn = document.getElementById('next-btn');
     const prevBtn = document.getElementById('prev-btn');
     const finishBtn = document.getElementById('finish-btn');
-    const filterIcon = document.getElementById('filter-icon');
+    const filterIcon = document.getElementById('floating-icon');
     const leftContainer = document.getElementById('left-container');
     const notFoundFrame = document.getElementById('notFoundFrame');
     const storedDepartureLocation = localStorage.getItem('departureLocation');
     const storedArrivalLocation = localStorage.getItem('arrivalLocation');
 
     let allFlights = [];
-    let numberOfPersons = 1;
-    let selectedDepartureTime = null;
-    let selectedArrivalTime = null;
+
 
     function setActiveStep(step) {
         steps.forEach((elem) => {
@@ -36,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Show the filter icon only for step 1
         filterIcon.style.display = step === 1 ? 'flex' : 'none';
-        leftContainer.style.display = step === 2 && window.innerWidth >= 900 ? 'none' : 'flex';
+        leftContainer.style.display = step === 2 || window.innerWidth >= 900 ? 'none' : 'flex';
     }
 
     prevBtn.addEventListener('click', function () {
@@ -67,27 +65,63 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-
     finishBtn.addEventListener('click', function () {
-        alert('Booking process completed!');
-        window.location.href = '/user_home/user_home.html';
+        // Create a popup container
+        const popupContainer = document.createElement('div');
+        popupContainer.style.position = 'fixed';
+        popupContainer.style.top = '0';
+        popupContainer.style.left = '0';
+        popupContainer.style.width = '100%';
+        popupContainer.style.height = '100%';
+        popupContainer.style.background = 'rgba(0, 0, 0, 0.5)';
+        popupContainer.style.display = 'flex';
+        popupContainer.style.justifyContent = 'center';
+        popupContainer.style.alignItems = 'center';
+        popupContainer.style.zIndex = '9999'; // Ensure it's on top of other content
+    
+        // Create an image element
+        const image = document.createElement('img');
+        image.src = '/images/Success.gif'; // Replace with your image path
+        image.style.width = '80%';
+        image.style.maxWidth = '800px'; // Limit maximum width for responsiveness
+        image.style.height = 'auto';
+    
+        // Append image to the popup container
+        popupContainer.appendChild(image);
+    
+        // Append popup container to the body
+        document.body.appendChild(popupContainer);
+    
+        // Hide the popup after 5 seconds
+        setTimeout(function () {
+            document.body.removeChild(popupContainer);
+            window.location.href = '/user_part/user_home/user_home.html'; // Redirect after image display
+        }, 5000); // 5000 milliseconds = 5 seconds
     });
-
-    // Increment and Decrement Functionality
+    
+ 
+    let numberOfPersons = parseInt(localStorage.getItem('numberOfPersons')) || 1;
     const decrementBtn = document.getElementById('decrement-btn');
     const incrementBtn = document.getElementById('increment-btn');
     const numberOfPersonsElement = document.getElementById('no-of-persons');
 
+    // Update the DOM with the initial number of persons
+    numberOfPersonsElement.textContent = numberOfPersons;
+
+    // Decrement functionality
     decrementBtn.addEventListener('click', function () {
         if (numberOfPersons > 1) {
             numberOfPersons--;
             numberOfPersonsElement.textContent = numberOfPersons;
+            localStorage.setItem('numberOfPersons', numberOfPersons); // Update localStorage
         }
     });
 
+    // Increment functionality
     incrementBtn.addEventListener('click', function () {
         numberOfPersons++;
         numberOfPersonsElement.textContent = numberOfPersons;
+        localStorage.setItem('numberOfPersons', numberOfPersons); // Update localStorage
     });
 
     // Booking button functionality
@@ -96,15 +130,12 @@ document.addEventListener('DOMContentLoaded', function () {
     bookBtn.addEventListener('click', function () {
         const selectedFlightElement = document.querySelector('input[name="flight"]:checked');
         if (selectedFlightElement) {
-            const userId = localStorage.getItem('userId'); // Assuming userId is already stored in local storage
+            const userId = localStorage.getItem('userId');
             const routeId = selectedFlightElement.getAttribute('data-route-id');
-       
             const flightId = selectedFlightElement.value;
-            const numberOfPersons = parseInt(localStorage.getItem('numberOfPersons')); // Assuming numberOfPersons is already stored in local storage
+            const numberOfPersons = parseInt(localStorage.getItem('numberOfPersons')) || 1;
             const costPerPerson = parseFloat(selectedFlightElement.getAttribute('data-cost-per-person'));
             const totalCost = costPerPerson * numberOfPersons;
-
-            // Store the number of persons and total cost in local storage
             localStorage.setItem('numberOfPersons', numberOfPersons);
             localStorage.setItem('totalCost', totalCost);
 
@@ -118,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Log booking data to ensure it's correctly formatted
             console.log('Booking Data:', bookingData);
+
 
             // Send booking data to the API
             fetch('https://localhost:7127/api/Booking/User/AddBooking', {
@@ -162,22 +194,25 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listener to each payment option to select it
     paymentOptions.forEach(option => {
         option.addEventListener('click', function () {
-            // Remove 'selected' class from all options
+
             paymentOptions.forEach(opt => opt.classList.remove('selected'));
-            // Add 'selected' class to the clicked option
+
             this.classList.add('selected');
         });
     });
-
     payBtn.addEventListener('click', async function () {
         if (!payBtn.classList.contains('disabled')) {
             const selectedPaymentOption = document.querySelector('.payment-option.selected');
             if (selectedPaymentOption) {
                 const paymentMethod = selectedPaymentOption.textContent;
+                const departureLocation = localStorage.getItem('departureLocation');
+                const arrivalLocation = localStorage.getItem('arrivalLocation');
+                const selectedFlightId = localStorage.getItem('selectedFlightId');
+                const numberOfPersons = localStorage.getItem('numberOfPersons');
+                const totalCost = localStorage.getItem('totalCost');
                 const bookingId = localStorage.getItem('bookingId'); // Fetch bookingId from local storage
 
-                if (bookingId && paymentMethod) {
-                    // Create the payment object
+                if (departureLocation) {
                     const paymentData = {
                         bookingId: parseInt(bookingId, 10), // Ensure bookingId is an integer
                         paymentMethod: paymentMethod
@@ -195,9 +230,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         if (response.ok) {
                             const result = await response.json();
-                            console.log(result);
-                            alert(`Payment successful: Payment ID ${result.paymentId}`);
-                            // Perform any additional actions upon successful payment
+
+                            localStorage.setItem('paymentId', result.paymentId);
+                            localStorage.setItem('paymentMethod', paymentMethod);
+                            showCustomAlert(`<h2>Payment successful</h2>
+                                            Selected Flight ID: ${selectedFlightId}
+                                            Departure Location: ${departureLocation}
+                                            Arrival Location: ${arrivalLocation}
+                                            Number of Persons: ${numberOfPersons}
+                                            Total Cost: ${totalCost}
+                                            Booking ID: ${bookingId}
+                                            Payment ID: ${result.paymentId}
+                                            Payment Method: ${paymentMethod}`);
                         } else {
                             const error = await response.json();
                             alert(`Payment failed: ${error.message}`);
@@ -207,13 +251,41 @@ document.addEventListener('DOMContentLoaded', function () {
                         alert('An error occurred while processing the payment.');
                     }
                 } else {
-                    alert('Booking ID or payment method is missing.');
+                    alert('One or more details (departure location, arrival location, flight ID, number of persons, total cost, booking ID, or payment method) are missing.');
                 }
             } else {
                 alert('Please select a payment method before proceeding.');
             }
         }
     });
+
+
+    function showCustomAlert(message) {
+        const alertBox = document.getElementById('customAlert');
+        const alertMessage = document.getElementById('alertMessage');
+
+        // Split message into lines and create HTML for each line
+        const messageLines = message.split('\n');
+        alertMessage.innerHTML = messageLines.map(line => `<p>${line}</p>`).join('');
+
+        alertBox.style.display = 'block';
+
+        // Close alert when close icon is clicked
+        const closeBtn = document.getElementsByClassName('close-alert')[0];
+        closeBtn.onclick = function () {
+            alertBox.style.display = 'none';
+        };
+
+        // Close alert if user clicks outside of it
+        window.onclick = function (event) {
+            if (event.target === alertBox) {
+                alertBox.style.display = 'none';
+            }
+        };
+    }
+
+
+
 
     function enablePaymentOptions() {
         paymentOptions.forEach(option => option.classList.remove('disabled'));
@@ -231,46 +303,137 @@ document.addEventListener('DOMContentLoaded', function () {
             paymentOptionsElement.appendChild(totalCostElement);
         }
     }
+   
+    // const departureContainer = document.getElementById('departure-container');
+    // const arrivalContainer = document.getElementById('arrival-container');
+    // const selectedDepartureTimes = new Set();
+    // const selectedArrivalTimes = new Set();
+    
+    // function toggleSelection(box, selectedTimes) {
+    //     const time = box.getAttribute('data-time');
+    //     if (selectedTimes.has(time)) {
+    //         selectedTimes.delete(time);
+    //         box.classList.remove('selected');
+    //     } else {
+    //         selectedTimes.add(time);
+    //         box.classList.add('selected');
+    //     }
+    //     filterFlights();
+    // }
+    
+    // departureContainer.addEventListener('click', (e) => {
+    //     const box = e.target.closest('.box');
+    //     if (box) {
+    //         toggleSelection(box, selectedDepartureTimes);
+    //         console.log("Selected Departure Times:", selectedDepartureTimes);
+    //     }
+    // });
+    
+    // arrivalContainer.addEventListener('click', (e) => {
+    //     const box = e.target.closest('.box');
+    //     if (box) {
+    //         toggleSelection(box, selectedArrivalTimes);
+    //         console.log("Selected Arrival Times:", selectedArrivalTimes);
+    //     }
+    // });
+    
+    // function isInTimeRange(time, range) {
+    //     const [startRange, endRange] = range.split('-').map(t => t.trim());
+    //     const [startHours, startMinutes] = startRange.split(':').map(Number);
+    //     const [endHours, endMinutes] = endRange.split(':').map(Number);
+    //     const [timeHours, timeMinutes] = time.split(':').map(Number);
+    
+    //     const startTime = new Date();
+    //     startTime.setHours(startHours, startMinutes, 0, 0);
+    
+    //     const endTime = new Date();
+    //     endTime.setHours(endHours, endMinutes, 0, 0);
+    
+    //     const checkTime = new Date();
+    //     checkTime.setHours(timeHours, timeMinutes, 0, 0);
+    
+    //     return checkTime >= startTime && checkTime <= endTime;
+    // }
+    
+
+    
+
+    function formatTime(date) {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+    // const hasDepartureMatch = [];
+    // const hasArrivalMatch = [];
+
+    // function filterFlights() {
+    //     const allFlights = Array.from(document.querySelectorAll('.flight-card'));
+    //     const departureTimes = [];
+    //     const arrivalTimes = [];
+        
+    
+        
+    //     allFlights.forEach((card) => {
+    //         const departureTime = card.querySelector('.departure-time').textContent.trim();
+    //         const arrivalTime = card.querySelector('.arrival-time').textContent.trim();
+            
+    //         departureTimes.push(departureTime);
+    //         arrivalTimes.push(arrivalTime);
+            
+    //         const departureMatches = Array.from(selectedDepartureTimes).some(range => isInTimeRange(departureTime, range));
+    //         const arrivalMatches = Array.from(selectedArrivalTimes).some(range => isInTimeRange(arrivalTime, range));
+            
+    //         if (departureMatches) {
+    //             hasDepartureMatch.push(card.htmlFor);
+    //         }
+    //         if (arrivalMatches) {
+    //             hasArrivalMatch.push(card.htmlFor);
+    //         }
+    //     });
+        
+    //     console.log('Departure Times:', departureTimes);
+    //     console.log('Arrival Times:', arrivalTimes);
+    //     console.log('DepartureMatch Flight IDs:', hasDepartureMatch);
+    //     console.log('ArrivalMatch Flight IDs:', hasArrivalMatch);
+    // }
+    
+    
     async function displayFlights(flights) {
         const flightCardsContainer = document.getElementById('flight-cards');
-        flightCardsContainer.innerHTML = ''; // Clear previous cards
-
+        flightCardsContainer.innerHTML = ''; // Clear previous cards   
         try {
-            allFlights = Object.values(flights).flat(); // Flatten arrays of flights
-            let hasFlights = false; 
+            const allFlights = Object.values(flights).flat(); // Flatten arrays of flights
+            let hasFlights = false;
             for (const [index, flight] of allFlights.entries()) {
-                // Check if flight matches the stored locations
                 if (flight.DepartureLocation.toLowerCase() === storedDepartureLocation.toLowerCase() &&
                     flight.ArrivalLocation.toLowerCase() === storedArrivalLocation.toLowerCase()) {
-
-                    // Fetch flight name and calculate duration
+    
                     const flightName = await fetchFlightName(flight.FlightId);
                     const duration = calculateDuration(flight.ArrivalDateTime, flight.DepartureDateTime);
-
-                    // Create flight card HTML
+    
                     const flightCard = document.createElement('label');
                     flightCard.classList.add('flight-card');
                     flightCard.htmlFor = `flight-${index}`;
-
-                    flightCard.setAttribute('data-price', flight.PricePerPerson); // Set data attribute for price
+            
+                    flightCard.setAttribute('data-price', flight.PricePerPerson);
                     flightCard.setAttribute('data-stops', flight.NoOfStops);
                     flightCard.innerHTML = `
                         <div class="flight-content">
-                             <input type="radio" name="flight" id="flight-${index}" value="${flight.FlightId}" class="flight-radio" data-route-id="${flight.RouteId}"  data-cost-per-person="${flight.PricePerPerson}">
-                       <div>
+                            <input type="radio" name="flight" id="flight-${index}" value="${flight.FlightId}" class="flight-radio" data-route-id="${flight.RouteId}" data-cost-per-person="${flight.PricePerPerson}">
+                            <div>
                                 <h3>Departure Details:</h3>
-                                <p>${flight.DepartureLocation}</p>
+                                <p class="departure-location">${flight.DepartureLocation}</p>
                                 <p>${new Date(flight.DepartureDateTime).toLocaleDateString()}</p>
-                                <p>${new Date(flight.DepartureDateTime).toLocaleTimeString()}</p>
+                                <p class="departure-time">${formatTime(new Date(flight.DepartureDateTime))}</p>
                             </div>
                             <div class="duration-container">
                                 <p class="duration-text"><strong>Duration:</strong> ${duration}</p>
                             </div>
                             <div>
                                 <strong>Arrival Details:</strong>
-                                <p>${flight.ArrivalLocation}</p>
+                                <p class="arrival-location">${flight.ArrivalLocation}</p>
                                 <p>${new Date(flight.ArrivalDateTime).toLocaleDateString()}</p>
-                                <p>${new Date(flight.ArrivalDateTime).toLocaleTimeString()}</p>
+                                <p class="arrival-time">${formatTime(new Date(flight.ArrivalDateTime))}</p>
                             </div>
                         </div>
                         <div class="other-info">
@@ -278,23 +441,25 @@ document.addEventListener('DOMContentLoaded', function () {
                             <p><strong>Price Per Person:</strong> ${flight.PricePerPerson}</p>
                         </div>
                         <div class="flight-names">
-                            <p class="flight-details-toggle arrow-down">Flight-details</p>
+                            <h3>FlightName: ${flightName}</h3>
                             <p><strong>Stops:</strong> ${flight.NoOfStops}</p>
                         </div>
                         <div class="additional-info">
+                         
                             <div class="flight-header">
-                                <h3>${flightName}</h3>
-                                <span><strong>Flight ID:</strong> ${flight.FlightId}</span>
-                                  <span><strong>Route ID:</strong> ${flight.RouteId}</span>
+                              
+                               
                             </div>
                         </div>
                     `;
-
+                
                     flightCardsContainer.appendChild(flightCard);
-                    hasFlights = true; 
+                    hasFlights = true;
+                  
                 }
             }
-            attachStopFilterEventListeners(); // Attach event listeners for stop checkboxes after flights are displayed
+         
+            attachStopFilterEventListeners();
             if (!hasFlights) {
                 notFoundFrame.style.display = 'block';
             } else {
@@ -304,6 +469,11 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error displaying flights:', error);
         }
     }
+
+    
+  
+    
+    
     async function fetchFlights() {
         try {
             const response = await fetch('https://localhost:7127/api/Flight/GetAllDirectFlights');
@@ -371,8 +541,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     const stops = parseInt(card.getAttribute('data-stops'), 10);
                     if (selectedStops.length === 0 || selectedStops.includes(stops)) {
                         card.style.display = 'block';
+                        notFoundFrame.style.display = 'none';
                     } else {
                         card.style.display = 'none';
+                        notFoundFrame.style.display = 'block';
                     }
                 });
             });
@@ -390,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         fetchFlightCosts().done(function (data) {
-          
+
             let sortedData = data.sort((a, b) => a - b);
             let minVal = sortedData[0];
             let maxVal = sortedData[sortedData.length - 1];
@@ -424,49 +596,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 const price = parseFloat(card.getAttribute('data-price'));
                 if (price >= minPrice && price <= maxPrice) {
                     card.style.display = 'block';
+                    notFoundFrame.style.display = 'none';
                 } else {
                     card.style.display = 'none';
+                    notFoundFrame.style.display = 'block';
+
                 }
             });
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const leftContainer = document.getElementById('left-container');
-        const floatingIcon = document.getElementById('filter-icon');
 
-        floatingIcon.addEventListener('click', function () {
-            leftContainer.classList.toggle('open');
-        });
-    });
 
 
 });
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('JavaScript loaded');
+    const leftContainer = document.getElementById('left-container');
+    const floatingIcon = document.getElementById('floating-icon');
 
-let selectedDepartureItems = new Set();
-let selectedArrivalItems = new Set();
-
-function toggleSelection(containerId, element) {
-    const container = document.getElementById(containerId);
-    const text = element.querySelector('.text').textContent;
-
-    if (containerId === 'departure-container') {
-        if (element.classList.contains('selected')) {
-            selectedDepartureItems.delete(text);
-            element.classList.remove('selected');
-        } else {
-            selectedDepartureItems.add(text);
-            element.classList.add('selected');
-        }
-        console.log('Selected departure items:', Array.from(selectedDepartureItems));
-    } else if (containerId === 'arrival-container') {
-        if (element.classList.contains('selected')) {
-            selectedArrivalItems.delete(text);
-            element.classList.remove('selected');
-        } else {
-            selectedArrivalItems.add(text);
-            element.classList.add('selected');
-        }
-        console.log('Selected arrival items:', Array.from(selectedArrivalItems));
-    }
-}
+    floatingIcon.addEventListener('click', function () {
+        console.log('Filter icon clicked');
+        leftContainer.classList.toggle('open');
+    });
+});

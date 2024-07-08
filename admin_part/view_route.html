@@ -10,8 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Your existing CSS */
-
         body {
             font-family: 'Nunito', sans-serif;
             margin: 0;
@@ -20,7 +18,6 @@
             flex-direction: column;
             align-items: center;
             background-color: #d0f0dc;
-            /* Background color updated */
         }
 
         #addIcon {
@@ -29,37 +26,64 @@
             right: 20px;
             font-size: 4em;
             color: green;
-            /* Customize the color */
             cursor: pointer;
             z-index: 1000;
         }
 
         .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+
+
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
             width: 100%;
-            max-width: 1200px;
+            max-width: 90vw;
             padding: 20px;
             background-color: #e0f7e9;
-            /* Background color updated */
         }
 
         .card {
             background-color: #fff;
             border-radius: 8px;
+
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             padding: 20px;
             text-align: left;
             position: relative;
         }
 
+        .card .row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card .column {
+            flex: 1;
+
+
+        }
+
+        .card .column:last-child {
+            margin-right: 0;
+
+
+        }
+
+        .card .column1:last-child {
+            margin-right: 0;
+            text-align: right;
+
+        }
+
         .card h3 {
+            font-size: 1.4em;
             margin-top: 0;
         }
 
         .card p {
-            margin: 5px 0;
+            font-size: 1.2em;
+            margin: 10px;
+            white-space: nowrap;
         }
 
         .card .icons {
@@ -80,8 +104,12 @@
 
         .card .icons i:hover {
             color: #4CAF50;
-            /* Adjusted hover color */
         }
+
+        .card .icons .fa-trash:hover {
+            color: red;
+        }
+
 
         .modal {
             display: none;
@@ -92,16 +120,31 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgb(0, 0, 0);
             background-color: rgba(0, 0, 0, 0.4);
         }
 
         .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
+            background-color: #fff;
+            margin: 5% auto;
             padding: 20px;
             border: 1px solid #888;
+            border-radius: 8px;
             width: 80%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .close {
@@ -116,6 +159,50 @@
             color: black;
             text-decoration: none;
             cursor: pointer;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-content form label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .modal-content form input,
+        .modal-content form button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .modal-content form input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+
+        .modal-content form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-content form button:hover {
+            background-color: #45a049;
         }
 
         #searchBar {
@@ -135,20 +222,8 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        .search-container {
-            margin-bottom: 20px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        #notFoundFrame {
+        #notFoundFrame,
+        #blankPageFrame {
             display: none;
             width: 100%;
             height: 80vh;
@@ -158,11 +233,12 @@
 </head>
 
 <body>
+
     <h1>Manage Routes</h1>
     <input type="text" id="searchBar" placeholder="Search routes...">
 
     <div class="grid-container" id="routeGrid">
-        <!-- Cards will be dynamically inserted here -->
+
     </div>
     <i id="addIcon" class="fas fa-plus-circle" onclick="window.location.href='/admin_part/add_route.html';"></i>
     <div id="updateModal" class="modal">
@@ -194,51 +270,172 @@
 
     <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
 
+    <iframe id="blankPageFrame" src="/empty_states/blankPage.html"></iframe>
     <script>
+        function formatDateTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            return {
+                date: `${day}-${month}-${year}`,
+                time: `${hours}:${minutes}`
+            };
+        }
+
         const routeGrid = document.getElementById('routeGrid');
         const searchBar = document.getElementById('searchBar');
         const notFoundFrame = document.getElementById('notFoundFrame');
+        const blankPageFrame = document.getElementById('blankPageFrame');
+
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchRoutes();
         });
-
         const fetchRoutes = () => {
             fetch('https://localhost:7127/api/Route/GetAllRoutes')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 500) {
+                            throw new Error('Server error');
+                        } else {
+                            throw new Error('Network response was not ok');
+                        }
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     const routes = data;
-                    renderRoutes(routes);
+                    if (routes.length === 0) {
+                        blankPageFrame.style.display = 'block';
+                        routeGrid.style.display = 'none';
+                    } else {
+                        blankPageFrame.style.display = 'none';
+                        routeGrid.style.display = 'grid';
+                        renderRoutes(routes);
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching routes:', error);
+                    if (error.message === 'Server error') {
+                        blankPageFrame.style.display = 'block';
+                        routeGrid.style.display = 'none';
+                    }
                 });
         }
 
         const renderRoutes = (routes) => {
             routeGrid.innerHTML = '';
             routes.forEach(route => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.setAttribute('data-route-id', route.routeId); // Add data attribute
-                card.innerHTML = `
-                    <h3>Route ID: ${route.routeId}</h3>
-                    <p>Flight ID: ${route.flightId}</p>
-                    <p>Arrival Location: ${route.arrivalLocation}</p>
-                    <p>Arrival DateTime: ${route.arrivalDateTime}</p>
-                    <p>Departure Location: ${route.departureLocation}</p>
-                    <p>Departure DateTime: ${route.departureDateTime}</p>
-                    <p>Seats Available: ${route.seatsAvailable}</p>
-                    <p>No of Stops: ${route.noOfStops}</p>
-                    <p>Price Per Person: Rs.${route.pricePerPerson}</p>
-                    <div class="icons">
-                        <i class="fas fa-edit" onclick="openUpdateModal(${route.routeId}, '${route.flightId}', '${route.arrivalLocation}', '${route.arrivalDateTime}', '${route.departureLocation}', '${route.departureDateTime}', ${route.seatsAvailable}, ${route.noOfStops}, ${route.pricePerPerson})"></i>
-                        <i class="fas fa-trash-alt" onclick="deleteRoute(${route.routeId})"></i>
-                    </div>
-                `;
+                const card = createRouteCard(route);
                 routeGrid.appendChild(card);
             });
         }
+
+        async function fetchFlightName(flightId) {
+            try {
+                const response = await fetch(`https://localhost:7127/api/Flight/GetFlight/${flightId}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const flightData = await response.json();
+                return flightData.flightName;
+            } catch (error) {
+                console.error('Error fetching flight name:', error);
+                return 'Unknown Flight';
+
+            }
+        }
+        function createRouteCard(route) {
+            const formattedDepartureDateTime = formatDateTime(route.departureDateTime);
+            const formattedArrivalDateTime = formatDateTime(route.arrivalDateTime);
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.setAttribute('data-route-id', route.routeId);
+            card.innerHTML = `
+
+            <div class="row">
+                <div class="column1">
+               <h3>Route ID: ${route.routeId}</h3>
+              
+                </div>
+                 <div class="column1">
+               <h3>Flight ID: ${route.flightId}</h3>
+              
+                </div>
+            </div>
+    
+        <div class="row">
+            <div class="column">
+                <h3>Departure:</h3>
+                <p>Location: ${route.departureLocation}</p>
+                <p>Date: ${formattedDepartureDateTime.date}</p>
+                <p>Time: ${formattedDepartureDateTime.time}</p>
+            </div>
+            <div class="column">
+                <h3>Arrival:</h3>
+                <p>Location: ${route.arrivalLocation}</p>
+                <p>Date: ${formattedArrivalDateTime.date}</p>
+                <p>Time: ${formattedArrivalDateTime.time}</p>
+            </div>
+        </div>
+        <h3>Other Info:</h3>
+        <p>Seats Available: ${route.seatsAvailable}</p>
+        <p>No of Stops: ${route.noOfStops}</p>
+        <p>Price Per Person: Rs.${route.pricePerPerson}</p>
+        <div class="icons">
+            <i class="fas fa-edit" onclick="openUpdateModal(${route.routeId}, '${route.flightId}', '${route.arrivalLocation}', '${route.arrivalDateTime}', '${route.departureLocation}', '${route.departureDateTime}', ${route.seatsAvailable}, ${route.noOfStops}, ${route.pricePerPerson})"></i>
+            <i class="fas fa-trash" onclick="deleteRoute(${route.routeId})"></i>
+        </div>
+    `;
+            return card;
+        }
+
+
+        function deleteRoute(routeId) {
+            // Ask for confirmation before proceeding with deletion
+            const userConfirmed = confirm('Are you sure you want to delete this route?');
+
+            if (userConfirmed) {
+                fetch(`https://localhost:7127/api/Route/DeleteRoute/${routeId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // Add any other headers if needed
+                    },
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Handle success
+                        console.log('Route deleted successfully:', data);
+
+                        const cardToRemove = document.querySelector(`.card[data-route-id="${routeId}"]`);
+                        if (cardToRemove) {
+                            cardToRemove.remove();
+                            fetchRoutes();
+                        } else {
+                            console.warn(`Route card with ID ${routeId} not found in DOM.`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting route:', error);
+                        alert('Route you are deleting has sub routes. So unable to delete.');
+                    });
+            } else {
+                // User canceled the deletion
+                console.log('Route deletion canceled by user.');
+            }
+        }
+
 
         const openUpdateModal = (routeId, flightId, arrivalLocation, arrivalDateTime, departureLocation, departureDateTime, seatsAvailable, noOfStops, pricePerPerson) => {
             const modal = document.getElementById('updateModal');
@@ -310,20 +507,26 @@
         });
 
         searchBar.addEventListener('input', () => {
-            const searchTerm = searchBar.value.toLowerCase();
-            const filteredRoutes = Array.from(routeGrid.children).filter(card => {
+            const searchTerm = searchBar.value.trim().toLowerCase();
+            const cards = Array.from(routeGrid.children);
+
+            cards.forEach(card => {
                 const routeText = card.textContent.toLowerCase();
-                return routeText.includes(searchTerm);
+                const isVisible = routeText.includes(searchTerm);
+                card.style.display = isVisible ? 'block' : 'none';
             });
 
-            routeGrid.innerHTML = '';
-            if (filteredRoutes.length > 0) {
+            const visibleCards = cards.filter(card => card.style.display !== 'none');
+
+            if (visibleCards.length > 0) {
                 notFoundFrame.style.display = 'none';
-                filteredRoutes.forEach(card => routeGrid.appendChild(card));
+                blankPageFrame.style.display = 'none';
             } else {
                 notFoundFrame.style.display = 'block';
+                blankPageFrame.style.display = 'none';
             }
         });
+
     </script>
 </body>
 

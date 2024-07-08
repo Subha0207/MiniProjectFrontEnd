@@ -16,7 +16,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color:#E0FFFF;
+            background-color: #E0FFFF;
         }
 
         h1 {
@@ -84,9 +84,9 @@
             cursor: pointer;
         }
 
-     
 
-        
+
+
         .popup h2,
         .delete-popup h2 {
             margin-bottom: 20px;
@@ -234,7 +234,7 @@
     <table id="refundTable">
         <thead>
             <tr>
-              
+
                 <th>Refund ID</th>
                 <th>Cancellation Reason</th>
                 <th>Total Amount</th>
@@ -417,6 +417,13 @@
         }
 
         async function fetchRefundsAndPopulateTable() {
+            const userId = localStorage.getItem('userId');
+
+            if (!userId) {
+                console.error('User ID not found in local storage');
+                return;
+            }
+
             try {
                 const response = await fetch('https://localhost:7127/api/Refund/GetAllRefunds');
                 const refunds = await response.json();
@@ -427,7 +434,8 @@
                     const bookingId = await fetchBookingId(refund.cancellationId);
                     if (bookingId !== null) {
                         const bookingDetails = await fetchBookingDetails(bookingId);
-                        const row = document.createElement('tr');
+                      if(  bookingDetails.userId==userId){
+                         const row = document.createElement('tr');
                         row.innerHTML = `
                           
                             <td>${refund.refundId}</td>
@@ -436,6 +444,8 @@
                             <td>${refund.refundStatus}</td>
                         `;
                         tableBody.appendChild(row);
+                      }
+                       
                     } else {
                         console.error('No bookingId found for cancellationId:', refund.cancellationId);
                     }

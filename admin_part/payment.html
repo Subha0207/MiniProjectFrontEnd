@@ -16,7 +16,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f4f4f4;
+            background-color: #d0f0dc;
         }
 
         h1 {
@@ -61,7 +61,7 @@
         }
 
         /* iframe for not found results */
-        #notFoundFrame {
+        #notFoundFrame,#blankPageFrame {
             width: 70%;
             height: 70vh;
             border: none;
@@ -69,7 +69,6 @@
 
             margin: 20px auto;
         }
-
         /* Search bar container styling */
         .search-container {
             width: 40vw;
@@ -189,6 +188,7 @@
 
     <!-- iframe for not found results -->
     <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+    <iframe id="blankPageFrame" src="/empty_states/blankPage.html"></iframe>
     <table id="paymentTable">
         <thead>
             <tr>

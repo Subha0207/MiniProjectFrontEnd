@@ -15,7 +15,7 @@
         body {
             font-family: 'Nunito', sans-serif;
             font-size: 18px;
-            background-color:#E0FFFF;
+            background-color: #E0FFFF;
             margin: 20px 10%;
             padding: 20px;
         }
@@ -37,7 +37,7 @@
         }
 
         th {
-            background-color:  #007bff;
+            background-color: #007bff;
             color: white;
             cursor: pointer;
         }
@@ -50,8 +50,9 @@
             background-color: #f1f1f1;
         }
 
-        
-        #notFoundFrame {
+
+        #notFoundFrame,
+        #blankPageFrame {
             width: 70%;
             height: 70vh;
             border: none;
@@ -182,12 +183,13 @@
     <h1>Cancellations</h1>
     <div id="searchBarContainer" class="search-container"></div>
     <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
+    <iframe id="blankPageFrame" src="/empty_states/blankPage.html"></iframe>
     <table id="cancellationsTable">
         <thead>
             <tr>
                 <th>Cancellation ID</th>
                 <th>Reason</th>
-                
+
             </tr>
         </thead>
         <tbody></tbody>
@@ -203,7 +205,7 @@
             <select id="paymentId" required>
                 <option value="" disabled selected>Select Payment ID</option>
             </select>
-            
+
             <textarea id="reason" placeholder="Reason" rows="4" required></textarea>
             <button id="submitBtn">Submit</button>
         </div>
@@ -271,32 +273,98 @@
                     });
             });
         });
-function loadPaymentIds() {
-    fetch('https://localhost:7127/api/Payment/GetAllPayments', {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+        function loadPaymentIds() {
+            const userId = localStorage.getItem('userId');
+
+            if (!userId) {
+                console.error('User ID not found in local storage');
+                return;
             }
-            return response.json();
-        })
-        .then(payments => {
-            const paymentSelect = document.getElementById('paymentId');
-            paymentSelect.innerHTML = '<option value="" disabled selected>Select Payment ID</option>';
-            payments.forEach(payment => {
-                const option = document.createElement('option');
-                option.value = payment.paymentId;
-                option.textContent = payment.paymentId;
-                paymentSelect.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching payment IDs:', error);
-        });
-}
+
+            fetch('https://localhost:7127/api/Payment/GetAllPayments', {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(payments => {
+                    const paymentPromises = payments.map(payment => {
+                        return fetch(`https://localhost:7127/api/Booking/User/GetBookingById/${payment.bookingId}`, {
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(booking => {
+                                if (booking.userId == userId) {
+                                    return payment;
+                                }
+                            })
+                            .catch(error => {
+                                console.error(`Error fetching booking ID ${payment.bookingId}:`, error);
+                            });
+                    });
+
+                    Promise.all(paymentPromises)
+                        .then(filteredPayments => {
+                            const paymentSelect = document.getElementById('paymentId');
+                            paymentSelect.innerHTML = '<option value="" disabled selected>Select Payment ID</option>';
+                            filteredPayments.forEach(payment => {
+                                if (payment) {
+                                    const option = document.createElement('option');
+                                    option.value = payment.paymentId;
+                                    option.textContent = payment.paymentId;
+                                    paymentSelect.appendChild(option);
+                                }
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error processing payments:', error);
+                        });
+                })
+                .catch(error => {
+                    console.error('Error fetching payment IDs:', error);
+                });
+        }
+
+        // function loadPaymentIds() {
+        //     fetch('https://localhost:7127/api/Payment/GetAllPayments', {
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         }
+        //     })
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error('Network response was not ok');
+        //             }
+        //             console.log(response.json);
+        //             return response.json();
+        //         })
+        //         .then(payments => {
+        //             const paymentSelect = document.getElementById('paymentId');
+        //             paymentSelect.innerHTML = '<option value="" disabled selected>Select Payment ID</option>';
+        //             payments.forEach(payment => {
+        //                 const option = document.createElement('option');
+        //                 option.value = payment.paymentId;
+        //                 option.textContent = payment.paymentId;
+        //                 paymentSelect.appendChild(option);
+        //             });
+        //         })
+        //         .catch(error => {
+        //             console.error('Error fetching payment IDs:', error);
+        //         });
+        // }
+
         function loadBookingIds() {
             const userId = localStorage.getItem('userId'); // Assuming userId is stored in localStorage
             fetch(`https://localhost:7127/api/Booking/GetAllBookingsByUserId?userId=${userId}`, {
@@ -344,8 +412,8 @@ function loadPaymentIds() {
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
-                    const notFoundFrame = document.getElementById('notFoundFrame');
-                    notFoundFrame.style.display = 'block';
+                    const notFoundFrame = document.getElementById('blankPageFrame');
+                    blankPageFrame.style.display = 'block';
                     const table = document.querySelector('#cancellationsTable');
                     table.style.display = 'none';
                 });
@@ -373,36 +441,46 @@ function loadPaymentIds() {
 
             Promise.all(promises)
                 .then(updatedCancellations => {
+                    console.log('Updated Cancellations:', updatedCancellations); // Log the updated cancellations data
                     updateTable(updatedCancellations);
                 });
         }
 
         function updateTable(data) {
+            const userId = localStorage.getItem('userId');
+
+            if (!userId) {
+                console.error('User ID not found in local storage');
+                return;
+            }
+
             const table = document.querySelector('#cancellationsTable');
             const tableBody = document.querySelector('#cancellationsTable tbody');
-            const notFoundFrame = document.getElementById('notFoundFrame');
+            const blankPageFrame = document.getElementById('blankPageFrame');
 
-            if (data.length === 0) {
+            // Filter the data based on user ID
+            const filteredData = data.filter(cancellation => cancellation.userId == userId);
+            console.log('Data to be displayed:', filteredData); // Log the filtered data to be displayed in the table
+
+            if (filteredData.length === 0) {
                 console.log('No cancellations found.');
                 table.style.display = 'none';
-                notFoundFrame.style.display = 'block';
+                blankPageFrame.style.display = 'block';
             } else {
-                console.log('Displaying cancellations:', data);
+                console.log('Displaying cancellations:', filteredData);
                 tableBody.innerHTML = '';
-                notFoundFrame.style.display = 'none';
-                data.forEach(cancellation => {
+                blankPageFrame.style.display = 'none';
+                filteredData.forEach(cancellation => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${cancellation.cancellationId}</td>
-                        <td>${cancellation.reason}</td>
-                   
-                    `;
+                <td>${cancellation.cancellationId}</td>
+                <td>${cancellation.reason}</td>
+            `;
                     tableBody.appendChild(row);
                 });
                 table.style.display = 'table';
             }
-        }
-    </script>
+        }  </script>
 </body>
 
 </html>
