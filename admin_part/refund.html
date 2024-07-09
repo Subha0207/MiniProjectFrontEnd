@@ -17,7 +17,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f4f4f4;
+            background-color: #d0f0dc;
         }
 
         h1 {
@@ -202,10 +202,8 @@
         <thead>
             <tr>
                 <th>User ID</th>
-                <th>Refund ID</th>
-          
+                <th>Refund ID</th>       
                 <th>Cancellation Reason</th>
-
                 <th>Total Amount</th>
                 <th>Refund Status</th>
                 <th>Update</th>
@@ -317,7 +315,7 @@
                             <td>${bookingDetails.totalAmount}</td>
                                  <td>${refund.refundStatus}</td>
                             <td><i class="fas fa-edit updateBtn" data-refund-id="${refund.refundId}"></i></td>
-                            <td><i class="fas fa-trash-alt deleteBtn" data-refund-id="${refund.refundId}"></i></td>
+                            <td><i class="fas fa-trash deleteBtn" data-refund-id="${refund.refundId}"></i></td>
                         `;
                         tableBody.appendChild(row);
                     } else {

@@ -41,25 +41,32 @@ document.addEventListener('DOMContentLoaded', function () {
         setActiveStep(1);
     });
 
-
     nextBtn.addEventListener('click', function () {
         const selectedFlightElement = document.querySelector('input[name="flight"]:checked');
+        console.log(selectedFlightElement);
         if (selectedFlightElement) {
             const flightIndex = parseInt(selectedFlightElement.id.split('-')[1]); // Extract index from ID
             console.log('Selected flight index:', flightIndex);
-
+    
             // Get flight ID and route ID from the selected flight element
             const flightId = selectedFlightElement.value;
             const routeId = selectedFlightElement.getAttribute('data-route-id'); // Get route ID from data attribute
-
+       
             console.log('Selected flight ID:', flightId);
             console.log('Selected route ID:', routeId);
+         
+    
+            // if (seatsAvailable <= 0) {
+            //     alert("No seats available for your selected flight. Try to make a different selection.");
+            // } else {
+                // Store flight ID, route ID, and seats available in local storage
+                localStorage.setItem('selectedFlightId', flightId);
+                localStorage.setItem('selectedRouteId', routeId);
+               
 
-            // Store flight ID and route ID in local storage
-            localStorage.setItem('selectedFlightId', flightId);
-            localStorage.setItem('selectedRouteId', routeId);
-
-            setActiveStep(2); // Move to the next step in your process
+    
+                setActiveStep(2); // Move to the next step in your process
+           // }
         } else {
             alert('Please select a flight before continuing.');
         }
@@ -77,26 +84,28 @@ document.addEventListener('DOMContentLoaded', function () {
         popupContainer.style.display = 'flex';
         popupContainer.style.justifyContent = 'center';
         popupContainer.style.alignItems = 'center';
-        popupContainer.style.zIndex = '9999'; // Ensure it's on top of other content
+        popupContainer.style.zIndex = '9999'; 
     
-        // Create an image element
+       
         const image = document.createElement('img');
-        image.src = '/images/Success.gif'; // Replace with your image path
+        image.src = '/images/Success.gif'; 
         image.style.width = '80%';
-        image.style.maxWidth = '800px'; // Limit maximum width for responsiveness
+        image.style.maxWidth = '800px'; 
         image.style.height = 'auto';
     
-        // Append image to the popup container
+        
         popupContainer.appendChild(image);
     
-        // Append popup container to the body
+       
         document.body.appendChild(popupContainer);
     
-        // Hide the popup after 5 seconds
+        numberOfPersons = 1;
+        numberOfPersonsElement.textContent = numberOfPersons;
+        localStorage.setItem('numberOfPersons', numberOfPersons);
         setTimeout(function () {
             document.body.removeChild(popupContainer);
             window.location.href = '/user_part/user_home/user_home.html'; // Redirect after image display
-        }, 5000); // 5000 milliseconds = 5 seconds
+        }, 5000); 
     });
     
  
@@ -105,35 +114,41 @@ document.addEventListener('DOMContentLoaded', function () {
     const incrementBtn = document.getElementById('increment-btn');
     const numberOfPersonsElement = document.getElementById('no-of-persons');
 
-    // Update the DOM with the initial number of persons
+
     numberOfPersonsElement.textContent = numberOfPersons;
 
-    // Decrement functionality
     decrementBtn.addEventListener('click', function () {
         if (numberOfPersons > 1) {
             numberOfPersons--;
             numberOfPersonsElement.textContent = numberOfPersons;
             localStorage.setItem('numberOfPersons', numberOfPersons); // Update localStorage
+        
         }
     });
 
-    // Increment functionality
+   
     incrementBtn.addEventListener('click', function () {
         numberOfPersons++;
         numberOfPersonsElement.textContent = numberOfPersons;
         localStorage.setItem('numberOfPersons', numberOfPersons); // Update localStorage
     });
 
-    // Booking button functionality
     const bookBtn = document.getElementById('book-btn');
 
     bookBtn.addEventListener('click', function () {
         const selectedFlightElement = document.querySelector('input[name="flight"]:checked');
         if (selectedFlightElement) {
+            
+            let numberOfPersons = parseInt(localStorage.getItem('numberOfPersons')) || 1;
+            const seat = localStorage.getItem('seat');
+            if (numberOfPersons > seat) {
+                alert('Insufficient seats available for the selected flight. Please adjust the number of persons or select a different flight.');
+                return;
+            }
             const userId = localStorage.getItem('userId');
             const routeId = selectedFlightElement.getAttribute('data-route-id');
             const flightId = selectedFlightElement.value;
-            const numberOfPersons = parseInt(localStorage.getItem('numberOfPersons')) || 1;
+         //   let numberOfPersons = parseInt(localStorage.getItem('numberOfPersons')) || 1;
             const costPerPerson = parseFloat(selectedFlightElement.getAttribute('data-cost-per-person'));
             const totalCost = costPerPerson * numberOfPersons;
             localStorage.setItem('numberOfPersons', numberOfPersons);
@@ -191,7 +206,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const payBtn = document.getElementById('pay-btn');
     const paymentOptions = document.querySelectorAll('.payment-option');
 
-    // Add event listener to each payment option to select it
     paymentOptions.forEach(option => {
         option.addEventListener('click', function () {
 
@@ -303,101 +317,13 @@ document.addEventListener('DOMContentLoaded', function () {
             paymentOptionsElement.appendChild(totalCostElement);
         }
     }
-   
-    // const departureContainer = document.getElementById('departure-container');
-    // const arrivalContainer = document.getElementById('arrival-container');
-    // const selectedDepartureTimes = new Set();
-    // const selectedArrivalTimes = new Set();
-    
-    // function toggleSelection(box, selectedTimes) {
-    //     const time = box.getAttribute('data-time');
-    //     if (selectedTimes.has(time)) {
-    //         selectedTimes.delete(time);
-    //         box.classList.remove('selected');
-    //     } else {
-    //         selectedTimes.add(time);
-    //         box.classList.add('selected');
-    //     }
-    //     filterFlights();
-    // }
-    
-    // departureContainer.addEventListener('click', (e) => {
-    //     const box = e.target.closest('.box');
-    //     if (box) {
-    //         toggleSelection(box, selectedDepartureTimes);
-    //         console.log("Selected Departure Times:", selectedDepartureTimes);
-    //     }
-    // });
-    
-    // arrivalContainer.addEventListener('click', (e) => {
-    //     const box = e.target.closest('.box');
-    //     if (box) {
-    //         toggleSelection(box, selectedArrivalTimes);
-    //         console.log("Selected Arrival Times:", selectedArrivalTimes);
-    //     }
-    // });
-    
-    // function isInTimeRange(time, range) {
-    //     const [startRange, endRange] = range.split('-').map(t => t.trim());
-    //     const [startHours, startMinutes] = startRange.split(':').map(Number);
-    //     const [endHours, endMinutes] = endRange.split(':').map(Number);
-    //     const [timeHours, timeMinutes] = time.split(':').map(Number);
-    
-    //     const startTime = new Date();
-    //     startTime.setHours(startHours, startMinutes, 0, 0);
-    
-    //     const endTime = new Date();
-    //     endTime.setHours(endHours, endMinutes, 0, 0);
-    
-    //     const checkTime = new Date();
-    //     checkTime.setHours(timeHours, timeMinutes, 0, 0);
-    
-    //     return checkTime >= startTime && checkTime <= endTime;
-    // }
-    
-
-    
 
     function formatTime(date) {
         const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${hours}:${minutes}`;
     }
-    // const hasDepartureMatch = [];
-    // const hasArrivalMatch = [];
-
-    // function filterFlights() {
-    //     const allFlights = Array.from(document.querySelectorAll('.flight-card'));
-    //     const departureTimes = [];
-    //     const arrivalTimes = [];
-        
-    
-        
-    //     allFlights.forEach((card) => {
-    //         const departureTime = card.querySelector('.departure-time').textContent.trim();
-    //         const arrivalTime = card.querySelector('.arrival-time').textContent.trim();
-            
-    //         departureTimes.push(departureTime);
-    //         arrivalTimes.push(arrivalTime);
-            
-    //         const departureMatches = Array.from(selectedDepartureTimes).some(range => isInTimeRange(departureTime, range));
-    //         const arrivalMatches = Array.from(selectedArrivalTimes).some(range => isInTimeRange(arrivalTime, range));
-            
-    //         if (departureMatches) {
-    //             hasDepartureMatch.push(card.htmlFor);
-    //         }
-    //         if (arrivalMatches) {
-    //             hasArrivalMatch.push(card.htmlFor);
-    //         }
-    //     });
-        
-    //     console.log('Departure Times:', departureTimes);
-    //     console.log('Arrival Times:', arrivalTimes);
-    //     console.log('DepartureMatch Flight IDs:', hasDepartureMatch);
-    //     console.log('ArrivalMatch Flight IDs:', hasArrivalMatch);
-    // }
-    
-    
+  
     async function displayFlights(flights) {
         const flightCardsContainer = document.getElementById('flight-cards');
         flightCardsContainer.innerHTML = ''; // Clear previous cards   
@@ -417,9 +343,11 @@ document.addEventListener('DOMContentLoaded', function () {
             
                     flightCard.setAttribute('data-price', flight.PricePerPerson);
                     flightCard.setAttribute('data-stops', flight.NoOfStops);
+                   flightCard.setAttribute('data-seats', flight.SeatsAvailable);
+                  localStorage.setItem('seat',flight.SeatsAvailable);
                     flightCard.innerHTML = `
                         <div class="flight-content">
-                            <input type="radio" name="flight" id="flight-${index}" value="${flight.FlightId}" class="flight-radio" data-route-id="${flight.RouteId}" data-cost-per-person="${flight.PricePerPerson}">
+                            <input type="radio" name="flight" id="flight-${index}" value="${flight.FlightId}" class="flight-radio" data-route-id="${flight.RouteId}" data-cost-per-person="${flight.PricePerPerson}" data-seats="${flight.SeatsAvailable}">
                             <div>
                                 <h3>Departure Details:</h3>
                                 <p class="departure-location">${flight.DepartureLocation}</p>
@@ -469,11 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error displaying flights:', error);
         }
     }
-
-    
-  
-    
-    
+ 
     async function fetchFlights() {
         try {
             const response = await fetch('https://localhost:7127/api/Flight/GetAllDirectFlights');

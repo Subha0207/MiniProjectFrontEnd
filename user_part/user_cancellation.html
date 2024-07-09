@@ -180,7 +180,7 @@
 </head>
 
 <body>
-    <h1>Cancellations</h1>
+    <h1>My Cancellations</h1>
     <div id="searchBarContainer" class="search-container"></div>
     <iframe id="notFoundFrame" src="/empty_states/notFound.html"></iframe>
     <iframe id="blankPageFrame" src="/empty_states/blankPage.html"></iframe>
@@ -238,11 +238,18 @@
                     modal.style.display = 'none';
                 }
             });
-
             submitBtn.addEventListener('click', () => {
                 const bookingId = document.getElementById('bookingId').value;
                 const paymentId = document.getElementById('paymentId').value;
-                const reason = document.getElementById('reason').value;
+                const reasonInput = document.getElementById('reason');
+
+                // Check if fields are empty
+                if (!bookingId || !paymentId || !reasonInput.value) {
+                    alert('Please fill out all fields');
+                    return;
+                }
+
+                const reason = reasonInput.value;
 
                 const data = {
                     bookingId: parseInt(bookingId),
@@ -265,13 +272,19 @@
                     })
                     .then(result => {
                         console.log('Cancellation added:', result);
-                        modal.style.display = 'none';
-                        fetchCancellations();
+                        modal.style.display = 'none'; // Assuming `modal` is defined elsewhere
+                        fetchCancellations(); // Function to fetch updated cancellations list
+
+                        // Clear input fields
+                        document.getElementById('bookingId').value = '';
+                        document.getElementById('paymentId').value = '';
+                        reasonInput.value = ''; // Clear the reason input field
                     })
                     .catch(error => {
                         console.error('Error adding cancellation:', error);
                     });
             });
+
         });
         function loadPaymentIds() {
             const userId = localStorage.getItem('userId');
@@ -337,33 +350,6 @@
                 });
         }
 
-        // function loadPaymentIds() {
-        //     fetch('https://localhost:7127/api/Payment/GetAllPayments', {
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         }
-        //     })
-        //         .then(response => {
-        //             if (!response.ok) {
-        //                 throw new Error('Network response was not ok');
-        //             }
-        //             console.log(response.json);
-        //             return response.json();
-        //         })
-        //         .then(payments => {
-        //             const paymentSelect = document.getElementById('paymentId');
-        //             paymentSelect.innerHTML = '<option value="" disabled selected>Select Payment ID</option>';
-        //             payments.forEach(payment => {
-        //                 const option = document.createElement('option');
-        //                 option.value = payment.paymentId;
-        //                 option.textContent = payment.paymentId;
-        //                 paymentSelect.appendChild(option);
-        //             });
-        //         })
-        //         .catch(error => {
-        //             console.error('Error fetching payment IDs:', error);
-        //         });
-        // }
 
         function loadBookingIds() {
             const userId = localStorage.getItem('userId'); // Assuming userId is stored in localStorage

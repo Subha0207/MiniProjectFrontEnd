@@ -220,7 +220,7 @@
 </head>
 
 <body>
-    <h1>Refunds </h1>
+    <h1>My Refunds </h1>
     <div id="topContainer" class="topContainer">
         <div id="searchBarContainer" class="search-container"></div>
         <select class="filter-dropdown" id="refundFilter">
@@ -273,38 +273,92 @@
             const submitRefundBtn = document.getElementById('submitRefundBtn');
             const refundTableBody = document.getElementById('refundTableBody');
 
+            // addRefundBtn.addEventListener('click', async function () {
+            //     addRefundPopup.style.display = 'block';
+            //     popupOverlay.style.display = 'block';
+
+            //     try {
+            //         const response = await fetch('https://localhost:7127/api/Cancellation/GetAllCancellations');
+            //         if (!response.ok) {
+            //             throw new Error(`HTTP error! Status: ${response.status}`);
+            //         }
+            //         const cancellations = await response.json();
+
+            //         // Clear existing options
+            //         cancellationDropdown.innerHTML = '';
+
+            //         // Create default option
+            //         const defaultOption = document.createElement('option');
+            //         defaultOption.value = '';
+            //         defaultOption.textContent = 'Select Cancellation ID';
+            //         cancellationDropdown.appendChild(defaultOption);
+
+            //         // Create options for each cancellation
+            //         cancellations.forEach(cancellation => {
+            //             const option = document.createElement('option');
+            //             option.value = cancellation.cancellationId;
+            //             option.textContent = `Cancellation ID: ${cancellation.cancellationId}`;
+            //             cancellationDropdown.appendChild(option);
+            //         });
+            //     } catch (error) {
+            //         console.error('Error fetching cancellations:', error);
+            //         // Handle error display or logging
+            //     }
+            // });
             addRefundBtn.addEventListener('click', async function () {
-                addRefundPopup.style.display = 'block';
-                popupOverlay.style.display = 'block';
+    addRefundPopup.style.display = 'block';
+    popupOverlay.style.display = 'block';
 
-                try {
-                    const response = await fetch('https://localhost:7127/api/Cancellation/GetAllCancellations');
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    const cancellations = await response.json();
+    try {
+        // Retrieve user ID from localStorage
+        const userId = localStorage.getItem('userId'); // Assuming userId is stored in localStorage
 
-                    // Clear existing options
-                    cancellationDropdown.innerHTML = '';
+        // Fetch cancellations for the current user
+        const response = await fetch(`https://localhost:7127/api/Cancellation/GetAllCancellations`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const cancellations = await response.json();
 
-                    // Create default option
-                    const defaultOption = document.createElement('option');
-                    defaultOption.value = '';
-                    defaultOption.textContent = 'Select Cancellation ID';
-                    cancellationDropdown.appendChild(defaultOption);
+        // Clear existing options
+        cancellationDropdown.innerHTML = '';
 
-                    // Create options for each cancellation
-                    cancellations.forEach(cancellation => {
-                        const option = document.createElement('option');
-                        option.value = cancellation.cancellationId;
-                        option.textContent = `Cancellation ID: ${cancellation.cancellationId}`;
-                        cancellationDropdown.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error('Error fetching cancellations:', error);
-                    // Handle error display or logging
+        // Create default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select Cancellation ID';
+        cancellationDropdown.appendChild(defaultOption);
+
+        // Create options for each cancellation
+        cancellations.forEach(async cancellation => {
+            // Fetch booking details for the current cancellation
+            try {
+                const bookingResponse = await fetch(`https://localhost:7127/api/Booking/User/GetBookingById/${cancellation.bookingId}`);
+                if (!bookingResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${bookingResponse.status}`);
                 }
-            });
+                const bookingDetails = await bookingResponse.json();
+
+                // Check if the booking belongs to the current user
+                if (bookingDetails.userId === parseInt(userId, 10)) {
+                    // Create option element
+                    const option = document.createElement('option');
+                    option.value = cancellation.cancellationId;
+                    option.textContent = `Cancellation ID: ${cancellation.cancellationId}`;
+
+                    // Append option to dropdown
+                    cancellationDropdown.appendChild(option);
+                }
+            } catch (bookingError) {
+                console.error(`Error fetching booking details for cancellation ID ${cancellation.cancellationId}:`, bookingError);
+                // Handle error fetching booking details
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching cancellations:', error);
+        // Handle error display or logging
+    }
+});
 
             document.getElementById('closePopupBtn').addEventListener('click', function () {
                 addRefundPopup.style.display = 'none';
@@ -374,18 +428,18 @@
             let hasVisibleRows = false;
 
             for (let row of rows) {
-                const statusCell = row.getElementsByTagName('td')[4];
+                const statusCell = row.getElementsByTagName('td')[3];
 
                 if (selectedStatus === '' || statusCell.textContent.toLowerCase().includes(selectedStatus)) {
                     row.style.display = '';
-                    hasVisibleRows = true; // Mark that at least one row is visible
+                    hasVisibleRows = true;
                 } else {
                     row.style.display = 'none';
                 }
             }
 
-            // Show notFoundFrame if no rows are visible
             document.getElementById('notFoundFrame').style.display = hasVisibleRows ? 'none' : 'block';
+            document.getElementById('refundTable').style.display = hasVisibleRows ? '' : 'none';
         });
 
         async function fetchBookingDetails(bookingId) {

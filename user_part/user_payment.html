@@ -175,7 +175,7 @@
 </head>
 
 <body>
-    <h1>Payment Details</h1>
+    <h1>My Payments</h1>
     <!-- Search container -->
     <div id="topContainer" class="topContainer">
 
@@ -290,54 +290,6 @@
         }
 
 
-        // function populateTable(payments) {
-        //     const userId = localStorage.getItem('userId');
-
-        //     if (!userId) {
-        //         console.error('User ID not found in local storage');
-        //         return;
-        //     }
-
-        //     const tbody = document.querySelector('#paymentTable tbody');
-        //     tbody.innerHTML = ''; // Clear existing rows
-
-        //     const paymentPromises = payments.map(payment => {
-        //         return fetch(`https://localhost:7127/api/Booking/User/GetBookingById/${payment.bookingId}`) // Replace with your actual API URL
-        //             .then(response => {
-        //                 if (!response.ok) {
-        //                     throw new Error('Network response was not ok');
-        //                 }
-        //                 return response.json();
-        //             })
-        //             .then(booking => {
-        //                 if (booking.userId == userId) {
-        //                     return { payment, booking };
-        //                 }
-        //                 return null;
-        //             })
-        //             .catch(error => {
-        //                 console.error('Error fetching booking data:', error);
-        //                 return null;
-        //             });
-        //     });
-
-        //     Promise.all(paymentPromises)
-        //         .then(results => {
-        //             results.forEach(result => {
-        //                 if (result) {
-        //                     const { payment } = result;
-        //                     const row = document.createElement('tr');
-        //                     row.innerHTML = `
-        //                 <td data-label="Payment ID">${payment.paymentId}</td>
-        //                 <td data-label="Booking ID">${payment.bookingId}</td>
-        //                 <td data-label="Amount">${payment.amount}</td>
-        //                 <td data-label="Payment Method">${payment.paymentMethod}</td>
-        //             `;
-        //                     tbody.appendChild(row);
-        //                 }
-        //             });
-        //         });
-        // }
 
         document.getElementById('paymentFilter').addEventListener('change', function () {
             const selectedValue = this.value;
@@ -353,6 +305,13 @@
                     row.style.display = 'none';
                 }
             });
+            if (hasVisibleRows) {
+                document.getElementById('paymentTable').style.display = '';
+                document.getElementById('notFoundFrame').style.display = 'none';
+            } else {
+                document.getElementById('paymentTable').style.display = 'none';
+                document.getElementById('notFoundFrame').style.display = 'block';
+            }
 
             document.getElementById('notFoundFrame').style.display = hasVisibleRows ? 'none' : 'block';
         });
